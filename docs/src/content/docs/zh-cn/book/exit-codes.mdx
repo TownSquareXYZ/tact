@@ -283,7 +283,7 @@ contract VibeCheck {
 
 > [`cell{:tact}`][cell]是一种[基元][p]和数据结构，它[通常](/book/cells#cells-kinds)由最多 $1023$ 个连续排列的位和最多 $4$ 个指向其他cell的引用（refs）组成。
 
-要构建一个 [`cellent{:tact}`][cell], 使用 [`Builder{:tact}`][builder] 如果尝试存储的数据超过 $1023$ 位，或对其他cell的引用超过 $4$ ，则会出现退出码为 $8$ 的错误："cell溢出"。
+要构建一个 [`cellent{:tact}`][cell], 使用 [`Builder{:tact}`][builder] 如果尝试存储的数据超过 $1023$ 位，或对其他cell的引用超过 $4$ ，则会出现退出码为 $8$ 的错误："`Cell overflow`。
 
 这个错误可以由[手动construction](/book/cells#cnp-manual y) 通过[relevant `.loadSomething()`方法](/ref/core-cells) 或[使用结构和消息及其方便方法](/book/cells#cnp-structs) 触发。
 

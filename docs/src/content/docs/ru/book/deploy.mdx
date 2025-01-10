@@ -1,0 +1,57 @@
+---
+title: Развертывание
+description: Распространенные способы развертывания контрактов Tact в тестовой или основной сети блокчейна TON
+prev:
+  link: /book/message-mode
+  label: Режим сообщений
+---
+
+Tact Deployer — это небольшая библиотека, которая интегрируется с [TON Verifier](https://verifier.ton.org), что позволяет вам безопасно развертывать ваши контракты с помощью вашего любимого кошелька без необходимости управлять ключами или развертывать контракты вручную. Tact Deployer также автоматически проверяет исходный код вашего контракта, и вы можете быть уверены, что ваш компилятор не скомпрометирован.
+
+## Требования
+
+В вашем контракте должен быть параметр `Deployer` из пакета `@stdlib/deploy`, чтобы иметь возможность использовать Tact Deployer.
+
+## Установка
+
+Чтобы добавить Tact Deployer в свой проект, просто используйте `yarn`:
+
+```bash
+yarn add @tact-lang/deployer
+```
+
+## Как использовать
+
+Когда вы создаете свои смарт-контракты с помощью Tact, он создает файл пакета (\*.pkg), содержащий всю необходимую информацию о созданном смарт-контракте. Чтобы развернуть смарт-контракт, вам нужно создать экземпляр deployer, передать ему файл пакета и предоставить начальные данные для вашего контракта.
+
+```typescript
+import * as fs from 'fs';
+import * as path from 'path';
+import { Address, contractAddress } from "ton";
+import { SampleTactContract } from "./output/sample_SampleTactContract";
+import { prepareTactDeployment } from "@tact-lang/deployer";
+
+// Параметры
+let testnet = true;                                 // Флаг для тестовой сети или основной сети
+
+let packageName = 'sample_SampleTactContract.pkg';  // Имя вашего пакета для развертывания
+let outputPath = path.resolve(__dirname, 'output'); // Путь к каталогу вывода
+let owner = Address.parse('<put_address_here>');    // У нашего типового контракта есть владелец
+let init = await SampleTactContract.init(owner);    // Создаем начальные данные для нашего контракта
+
+// Вычисления
+let address = contractAddress(0, init);     // Вычисляем адрес контракта. ДОЛЖЕН совпадать с адресом в верификаторе
+let data = init.data.toBoc();               // Создаем данные инициализации
+let pkg = fs.readFileSync(                  // Чтение файла пакета
+    path.resolve(outputPath, packageName)
+);
+
+// Подготовка к развертыванию
+let link = await prepareTactDeployment({ pkg, data, testnet });
+
+// Предоставьте ссылку на развертывание и адрес контракта
+console.log('Address: ' + address.toString({ testOnly: testnet }));
+console.log('Deploy link: ' + link);
+```
+
+После перехода по этой ссылке вы сможете развернуть и проверить свой смарт-контракт.

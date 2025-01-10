@@ -1,0 +1,416 @@
+---
+title: Конфигурация
+description: Поведение компилятора Tact можно настроить с помощью его файла конфигурации
+---
+
+Поведение компилятора Tact можно настроить с помощью его файла конфигурации `tact.config.json` — файла JSON, который содержит список настроек в соответствии с конкретной [схемой](#schema).
+
+На этой странице перечислены все параметры конфигурации, как они структурированы в [схеме](#schema). Найдите оглавление справа, чтобы легко ориентироваться в них.
+
+:::note
+
+  Единственное требование к этому файлу - он должен быть в формате JSON с [соответствующими полями](#schema), поэтому его можно назвать произвольно. Однако присвоение имени вашему конфигурационному файлу `tact.config.json` является общепринятым правилом, которое поощряется и поддерживается всеми инструментами, работающими с Tact.
+
+:::
+
+## `$schema` {#schema}
+
+Файл [JSON-схемы](https://json-schema.org/) доступен редакторам для автоматического заполнения и подсказок при наведении: [configSchema.json](http://raw.githubusercontent.com/tact-lang/tact/main/schemas/configSchema.json).
+
+Просто добавьте поле `$schema` в начало вашего файла конфигурации:
+
+```json filename="tact.config.json" {2}
+{
+  "$schema": "http://raw.githubusercontent.com/tact-lang/tact/main/schemas/configSchema.json",
+  "projects": []
+}
+```
+
+## `projects` {#projects}
+
+Список проектов Tact с соответствующими параметрами компиляции. Каждый файл `.tact` представляет собой собственный проект Tact.
+
+```json filename="tact.config.json" {3,4}
+{
+  "projects": [
+    { },
+    { }
+  ]
+}
+```
+
+### `name` {#projects-name}
+
+Имя проекта. Все сгенерированные файлы имеют этот префикс.
+
+В [Blueprint][bp] `name` относится к имени самого контракта.
+
+```json filename="tact.config.json" {4,7}
+{
+  "projects": [
+    {
+      "name": "some_prefix"
+    },
+    {
+      "name": "ContractUnderBlueprint"
+    }
+  ]
+}
+```
+
+### `path` {#projects-path}
+
+Путь к файлу Tact проекта. Вы можете указать только один файл Tact на проект.
+
+В [Blueprint][bp] `path` заменяется полем `target` в `wrappers/ContractName.compile.ts` по умолчанию или в `compilables/ContractName.compile.ts`, если у вас есть параметр `separateCompilables`, установленный в [`blueprint.config.ts`][bp-config].
+
+```json filename="tact.config.json" {5}
+{
+  "projects": [
+    {
+      "name": "some_prefix",
+      "path": "./contract.tact"
+    }
+  ]
+}
+```
+
+### `output` {#projects-output}
+
+Путь к каталогу, в котором будут размещены все сгенерированные файлы.
+
+В [Blueprint][bp] `output` не используется, и все сгенерированные файлы всегда размещаются в `build/ProjectName/`.
+
+```json filename="tact.config.json" {6}
+{
+  "projects": [
+    {
+      "name": "some_prefix",
+      "path": "./contract.tact",
+      "output": "./contract_output"
+    }
+  ]
+}
+```
+
+### `options` {#projects-options}
+
+Параметры компиляции для проекта.
+
+В [Blueprint][bp] они действуют как по умолчанию, если не изменены в `wrappers/ContractName.compile.ts` по умолчанию или в `compilables/ContractName.compile.ts`, если у вас есть `separateCompilables`, параметр, установленный в [`blueprint.config.ts`][bp-config].
+
+```json filename="tact.config.json" {7,11}
+{
+  "projects": [
+    {
+      "name": "some_prefix",
+      "path": "./contract.tact",
+      "output": "./contract_output",
+      "options": {}
+    },
+    {
+      "name": "ContractUnderBlueprint",
+      "options": {}
+    }
+  ]
+}
+```
+
+#### `debug` {#options-debug}
+
+`false{:json}` по умолчанию.
+
+Если установлено значение `true{:json}`, включается отладочный вывод контракта и разрешается использование функции [`dump(){:tact}`](/ref/core-debug#dump), которая полезна для [целей отладки](/book/debug). Если эта опция включена, контракт сообщит, что он был скомпилирован в режиме отладки с использованием метода `supported_interfaces`.
+
+```json filename="tact.config.json" {8,14}
+{
+  "projects": [
+    {
+      "name": "some_prefix",
+      "path": "./contract.tact",
+      "output": "./contract_output",
+      "options": {
+        "debug": true
+      }
+    },
+    {
+      "name": "ContractUnderBlueprint",
+      "options": {
+        "debug": true
+      }
+    }
+  ]
+}
+```
+
+:::note
+
+  Подробнее читайте на специальной странице: [Отладка](/book/debug).
+
+:::
+
+#### `masterchain` {#options-masterchain}
+
+`false{:json}` по умолчанию.
+
+Если установлено значение `true{:json}`, включается поддержка [мастерчейна](/book/masterchain).
+
+```json filename="tact.config.json" {8,14}
+{
+  "projects": [
+    {
+      "name": "some_prefix",
+      "path": "./contract.tact",
+      "output": "./contract_output",
+      "options": {
+        "masterchain": true
+      }
+    },
+    {
+      "name": "ContractUnderBlueprint",
+      "options": {
+        "masterchain": true
+      }
+    }
+  ]
+}
+```
+
+:::note
+
+  Подробнее читайте на специальной странице: [Мастерчейн](/book/masterchain).
+
+:::
+
+#### `external` {#options-external}
+
+`false{:json}` по умолчанию.
+
+Если установлено значение `true{:json}`, включает поддержку получения [внешних](/book/external) сообщений.
+
+```json filename="tact.config.json" {8,14}
+{
+  "projects": [
+    {
+      "name": "some_prefix",
+      "path": "./contract.tact",
+      "output": "./contract_output",
+      "options": {
+        "external": true
+      }
+    },
+    {
+      "name": "ContractUnderBlueprint",
+      "options": {
+        "external": true
+      }
+    }
+  ]
+}
+```
+
+:::note
+
+  Подробнее читайте на специальной странице: [Внешние сообщения](/book/external).
+
+:::
+
+#### `ipfsAbiGetter` {#options-ipfsabigetter}
+
+`false{:json}` по умолчанию.
+
+Если установлено значение `true{:json}`, включает генерацию функции [геттер](/book/contracts#getter-functions) со ссылками IPFS, описывающими ABI контракта.
+
+```json filename="tact.config.json" {8,14}
+{
+  "projects": [
+    {
+      "name": "some_prefix",
+      "path": "./contract.tact",
+      "output": "./contract_output",
+      "options": {
+        "ipfsAbiGetter": true
+      }
+    },
+    {
+      "name": "ContractUnderBlueprint",
+      "options": {
+        "ipfsAbiGetter": true
+      }
+    }
+  ]
+}
+```
+
+:::note
+
+  Подробнее читайте на специальной странице: [OTP-003: Самостоятельный отчет ABI](/ref/evolution/otp-003).
+
+:::
+
+#### `interfacesGetter` {#options-interfacesgetter}
+
+`false{:json}` по умолчанию.
+
+Если установлено значение `true{:json}`, включает генерацию [getter](/book/contracts#getter-functions) со списком интерфейсов, предоставляемых контрактом.
+
+```json filename="tact.config.json" {8,14}
+{
+  "projects": [
+    {
+      "name": "some_prefix",
+      "path": "./contract.tact",
+      "output": "./contract_output",
+      "options": {
+        "interfacesGetter": true
+      }
+    },
+    {
+      "name": "ContractUnderBlueprint",
+      "options": {
+        "interfacesGetter": true
+      }
+    }
+  ]
+}
+```
+
+:::note
+
+  Подробнее: [Поддерживаемые интерфейсы](/book/contracts#interfaces).
+
+:::
+
+#### `experimental` {#options-experimental}
+
+Экспериментальные параметры, которые могут быть удалены в будущем. Используйте с осторожностью!
+
+```json filename="tact.config.json" {8,14}
+{
+  "projects": [
+    {
+      "name": "some_prefix",
+      "path": "./contract.tact",
+      "output": "./contract_output",
+      "options": {
+        "experimental": {}
+      }
+    },
+    {
+      "name": "ContractUnderBlueprint",
+      "options": {
+        "experimental": {}
+      }
+    }
+  ]
+}
+```
+
+##### `inline` {#experimental-inline}
+
+`false{:json}` по умолчанию.
+
+Если установлено значение `true{:json}`, включает встраивание всех функций в контракты. Это может снизить потребление газа за счет более крупных контрактов.
+
+```json filename="tact.config.json" {9,17}
+{
+  "projects": [
+    {
+      "name": "some_prefix",
+      "path": "./contract.tact",
+      "output": "./contract_output",
+      "options": {
+        "experimental": {
+          "inline": true
+        }
+      }
+    },
+    {
+      "name": "ContractUnderBlueprint",
+      "options": {
+        "experimental": {
+          "inline": true
+        }
+      }
+    }
+  ]
+}
+```
+
+### `mode` {#projects-mode}
+
+Режим компиляции проекта. Возможные значения::
+
+| Значение                            | Описание                                                                                                                              |
+| :---------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------ |
+| `"full"{:json}`                     | (по умолчанию) Запускает весь конвейер компиляции и выдает код FunC, BoC и различные служебные файлы, включая обертки для TypeScript. |
+| `"fullWithDecompilation"{:json}`    | Запускает весь конвейер компиляции как `"full"{:json}`, а также декомпилирует созданный двоичный код в формате BoC.                   |
+| ` funcOnly`{:json}\`\`              | Выводит только промежуточный код FunC, предотвращая дальнейшую компиляцию.                                                            |
+| `"checkOnly"{:json}`.               | Выполняет только проверку синтаксиса и типов, предотвращая дальнейшую компиляцию.                                                     |
+
+В [Blueprint][bp] `mode` всегда установлен на `"full"{:json}` и не может быть перезаписан.
+
+```json filename="tact.config.json" {7,13}
+{
+  "projects": [
+    {
+      "name": "some_prefix",
+      "path": "./contract.tact",
+      "output": "./contract_output",
+      "mode": "full"
+    },
+    {
+      "name": "func_only",
+      "path": "./contract.tact",
+      "output": "./contract_output",
+      "mode": "funcOnly"
+    }
+  ]
+}
+```
+
+## Полный пример
+
+```json filename="tact.config.json" copy=false
+{
+  "$schema": "http://raw.githubusercontent.com/tact-lang/tact/main/schemas/configSchema.json",
+  "projects": [
+    {
+      "name": "basic",
+      "path": "./basic.tact",
+      "output": "./basic_output",
+      "mode": "full"
+    },
+    {
+      "name": "func_only",
+      "path": "./basic.tact",
+      "output": "./basic_output",
+      "mode": "funcOnly"
+    },
+    {
+      "name": "debugPrefix",
+      "path": "./contracts/contract.tact",
+      "output": "./contracts/output",
+      "options": {
+        "debug": true
+      }
+    },
+    {
+      "name": "ContractUnderBlueprint",
+      "options": {
+        "debug": false,
+        "masterchain": false,
+        "external": false,
+        "ipfsAbiGetter": true,
+        "interfacesGetter": true,
+        "experimental": {
+          "inline": false
+        }
+      }
+    }
+  ]
+}
+```
+
+[bp]: https://github.com/ton-org/blueprint
+[bp-config]: https://github.com/ton-org/blueprint/tree/main?tab=readme-ov-file#configuration

@@ -1,0 +1,155 @@
+---
+title: Отправка сообщений
+description: Блокчейн TON основан на сообщениях - чтобы взаимодействовать с другими контрактами и развертывания новых, необходимо отправлять сообщения.
+---
+
+Блокчейн TON основан на сообщениях - чтобы взаимодействовать с другими контрактами и развертывания новых, необходимо отправлять сообщения.
+
+Сообщения в Tact обычно составляются с использованием встроенного [Struct](/book/structs-and-messages#structs) `SendParameters{:tact}`, который состоит из:
+
+| Поле     | Тип                    | Описание                                                                                                                                                                                                                                                       |
+| :------- | :--------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bounce` | [`Bool{:tact}`][p]     | При значении `true` (по умолчанию), сообщение возвращается отправителю, если контракт получателя не существует или не смог обработать сообщение.                                                                                                               |
+| `to`     | [`Address{:tact}`][p]  | Внутренний [`Address{:tact}`][p] получателя в блокчейне TON.                                                                                                                                                                                                   |
+| `value`  | [`Int{:tact}`][int]    | Количество [нанотонкоинов][nano], которое вы хотите отправить с сообщением. Это значение обычно используется для покрытия [forward fees][fwdfee], если не используется необязательный флаг [`SendPayGasSeparately{:tact}`](/book/message-mode#optional-flags). |
+| `mode`   | [`Int{:tact}`][int]    | 8-битное значение, определяющее способ отправки сообщения, по умолчанию - $0$. См: [Message `mode`](/book/message-mode).                                                                                                                                       |
+| `body`   | [`Cell?{:tact}`][cell] | [Необязательное][opt] тело сообщения в виде [`Cell{:tact}`][cell]                                                                                                                                                                                              |
+| `code`   | [`Cell?{:tact}`][cell] | [Необязательный][opt] исходный код контракта (скомпилированный байткод)                                                                                                                                                                                        |
+| `data`   | [`Cell?{:tact}`][cell] | [Необязательные][opt] исходные данные контракта (аргументы [функции `init(){:tact}`](/book/contracts#init-function) контракта)                                                                                                                                 |
+
+Поля `code` и `data` - это так называемый [пакет инициализации] (/book/expressions#initof), который используется при развертывании новых контрактов.
+
+## Отправка простого ответа
+
+Самое простое сообщение - это ответ на входящее сообщение с возвратом всех избыточных значений сообщения:
+
+```tact
+self.reply("Hello, World!".asComment()); // asComment преобразует String в Cell с комментарием
+```
+
+## Отправка сообщения
+
+Если вам нужна более сложная логика, вы можете использовать функцию `send(){:tact}` и [Struct](/book/structs-and-messages#structs) `SendParameters{:tact}` напрямую.
+
+На самом деле, предыдущий пример с [`.reply(){:tact}`](#send-simple-reply-reply) можно реализовать с помощью следующего вызова функции `send(){:tact}`:
+
+```tact
+send(SendParameters{
+    // по умолчанию для параметра bounce установлено значение true
+    to: sender(), // отправка сообщения обратно отправителю
+    value: 0, // не добавлять Toncoin в сообщение...
+    mode: SendRemainingValue | SendIgnoreErrors, // ...за исключением сообщений, полученных от отправителя из-за SendRemainingValue
+    body: "Hello, World".asComment(), // asComment преобразует String в Cell с комментарием
+});
+```
+
+Другой пример отправляет сообщение на указанный [`Address{:tact}`][p] с `value` в $1$ TON и `body` в виде комментария с [`String{:tact}`][p] `"Hello, World!"{:tact}`:
+
+```tact
+let recipient: Address = address("...");
+let value: Int = ton("1");
+send(SendParameters{
+    // по умолчанию для параметра bounce установлено значение true
+    to: recipient,
+    value: value,
+    mode: SendIgnoreErrors, // отправит сообщение, несмотря на любые ошибки
+    body: "Hello, World!".asComment(),
+});
+```
+
+[Необязательный флаг](/book/message-mode#optional-flags) `SendIgnoreErrors{:tact}` означает, что даже в случае ошибки при отправке сообщения, следующие сообщения все равно будут отправлены. **Ни одна ошибка на этапе отправки не приведет к откату транзакции.**.
+
+## Отправка типизированного сообщения
+
+Чтобы отправить двоичное типизированное сообщение, вы можете использовать следующий код:
+
+```tact
+let recipient: Address = address("...");
+let value: Int = ton("1");
+send(SendParameters{
+    // по умолчанию для параметра bounce установлено значение true
+    to: recipient,
+    value: value,
+    mode: SendIgnoreErrors, // не останавливаться в случае возникновения ошибок
+    body: SomeMessage{arg1: 123, arg2: 1234}.toCell(),
+});
+```
+
+## Развертывание контракта
+
+Для развертывания контракта, необходимо вычислить его адрес и исходное состояние с помощью [`initOf{:tact}`](/book/expressions#initof), а затем отправить их в сообщении инициализации:
+
+```tact
+let init: StateInit = initOf SecondContract(arg1, arg2);
+let address: Address = contractAddress(init);
+let value: Int = ton("1");
+send(SendParameters{
+    // по умолчанию для параметра bounce установлено значение true
+    to: address,
+    value: value,
+    mode: SendIgnoreErrors, // не останавливаться в случае возникновения ошибок
+    code: init.code,
+    data: init.data,
+    body: "Hello, World!".asComment(), // не обязательно, может быть опущено
+});
+```
+
+## Обработка исходящих сообщений
+
+Каждая транзакция в блокчейне TON состоит из [нескольких фаз][phases]. Исходящие сообщения оцениваются в [фазе вычислений][compute], но **не** отправляются в этой фазе. Вместо этого они ставятся в очередь в порядке появления для [фазы действий][phases], где выполняются все действия, перечисленные в [фазе вычислений][compute], такие как исходящие сообщения или [резервные запросы](/ref/core-advanced#nativereserve).
+
+Поскольку все значения вычисляются в [фазе вычислений][compute], все комиссии рассчитываются к его завершению, а исключения не приводят к откату транзакций в [фазе действий][phases], отправка исходящих сообщений может завершиться неудачей без возврата из-за недостаточных [action fees](https://docs.ton.org/develop/howto/fees-low-level#action-fee) или [forward fees][fwdfee].
+
+Рассмотрим следующий пример:
+
+```tact
+// Изначально на балансе этого контракта было 0 nanoToncoins
+contract FailureIsNothingButAnotherStep {
+    // И все средства, которые он получает, поступают из входящих внутренних сообщений
+    receive() {
+        // 1-е исходящее сообщение обработано и поставлено в очередь (но еще не отправлено)
+        send(SendParameters{
+            to: sender(),
+            value: ton("0.042"), // плюс forward fee из-за SendPayGasSeparately
+            mode: SendIgnoreErrors | SendPayGasSeparately,
+        });
+
+        // 2-е исходящее сообщение оценено и поставлено в очередь (но еще не отправлено и никогда не будет!)
+        send(SendParameters{
+            to: sender(),
+            value: 0,
+            mode: SendRemainingValue | SendIgnoreErrors,
+        });
+    }
+}
+```
+
+В этом случае второе сообщение действительно не будет отправлено:
+
+- После завершения [фазы вычислений][compute] вычисляется остаточное значение $\mathrm{R}$ контракта.
+
+- Во время обработки исходящего сообщения и при условии, что во входящем сообщении было достаточно средств, первое сообщение оставляет $\mathrm{R} - (0.042 + \mathrm{forward\_fees})$ [nanoToncoins](/book/integers#nanotoncoin) на балансе.
+
+- Когда обрабатывается второе сообщение, контракт пытается отправить $\mathrm{R}$ [nanoToncoins](/book/integers#nanotoncoin), но не может этого сделать, так как оставшейся суммы недостаточно.
+
+:::note
+
+  Подробнее обо всех функциях отправки сообщений читайте в Справочнике:
+
+- [`send(){:tact}`](/ref/core-common#send)
+- [`emit(){:tact}`](/ref/core-common#emit)
+- [`self.notify(){:tact}`](/ref/core-base#self-notify)
+- [`self.reply(){:tact}`](/ref/core-base#self-reply)
+- [`self.forward(){:tact}`](/ref/core-base#self-forward)
+- [`nativeSendMessage(){:tact}`](/ref/core-advanced#nativesendmessage)
+
+:::
+
+[p]: /book/types#primitive-types
+[int]: /book/integers
+[cell]: /book/cells#cells
+[opt]: /book/optionals
+[phases]: https://docs.ton.org/learn/tvm-instructions/tvm-overview#transactions-and-phases
+[compute]: https://docs.ton.org/learn/tvm-instructions/tvm-overview#compute-phase
+[nano]: /book/integers#nanotoncoin
+[fwdfee]: https://docs.ton.org/develop/howto/fees-low-level#forward-fees

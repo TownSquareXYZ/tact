@@ -1,0 +1,217 @@
+---
+title: Отладка
+description: Различные функции отладки из основной библиотеки Tact
+---
+
+Список функций, обычно используемых для отладки смарт-контрактов в Tact.
+
+:::note
+
+  Подробнее об отладке читайте на специальной странице: [Debugging](/book/debug).
+
+:::
+
+## require
+
+```tact
+fun require(condition: Bool, error: String);
+```
+
+Проверяет `condition` и выдает ошибку с [кодом выхода](/book/exit-codes), сгенерированным из сообщения `error`, если `condition` равно `false{:tact}`. В ином случае ничего не делает.
+
+Алгоритм генерации кода выхода работает следующим образом:
+
+- Сначала получаем [SHA-256](https://en.wikipedia.org/wiki/SHA-2#Hash_standard) хэш сообщения `error` [`String{:tact}`][p].
+- Затем его значение считывается как 32-битное [от старшего к младшему](https://en.wikipedia.org/wiki/Endianness) число по модулю $63000$ плюс $1000$, в таком порядке.
+- Наконец, оно помещается в файл отчета о компиляции `.md`, который находится вместе с другими файлами компиляции в каталогах `outputs/` или `build/` вашего проекта.
+
+Сгенерированный код выхода гарантированно находится за пределами общего диапазона $0 - 255$, зарезервированного для ошибок контракта TVM и Tact, что позволяет отличать коды выхода от `require(){:tact}` и любых других [стандартных кодов выхода](/book/exit-codes).
+
+Примеры использования:
+
+```tact
+// now() должен возвращать значение больше 1000, иначе будет выдано сообщение об ошибке
+require(now() > 1000, "We're in the first 1000 seconds of 1 January 1970!");
+
+try {
+    // Следующее никогда не будет истинным, поэтому этот require всегда будет выдавать
+    require(now() < -1, "Время — иллюзия. Обеденное время вдвойне.");
+} catch (e) {
+    // e будет вне диапазона 0-255
+    dump(e);
+}
+```
+
+## dump
+
+```tact
+fun dump(arg);
+```
+
+Выводит аргумент `arg` в отладочную консоль контракта. Оценивается только в том случае, если параметр `debug` в [файле конфигурации](/book/config) установлен в `true{:json}`, в противном случае ничего не делает.
+
+Может применяться к следующему списку типов и значений:
+
+- [`Int{:tact}`][int]
+- [`Bool{:tact}`][bool]
+- [`Address{:tact}`][p]
+- [`Cell{:tact}`][cell], [`Builder{:tact}`][builder] или [`Slice{:tact}`][slice]
+- [`String{:tact}`][p] или [`StringBuilder{:tact}`][p]
+- [`map<K, V>{:tact}`](/book/maps)
+- [Необязательные и значение `null{:tact}`](/book/optionals)
+- `void`, которое неявно возвращается, когда функция не имеет определенного возвращаемого значения
+
+Примеры использования:
+
+```tact
+// Int
+dump(42);
+
+// Bool
+dump(true);
+dump(false);
+
+// Address
+dump(myAddress());
+
+// Cell, Builder или Slice
+dump(emptyCell());  // Cell
+dump(beginCell());  // Builder
+dump(emptySlice()); // Slice
+
+// String или StringBuilder
+dump("Hello, my name is..."); // String
+dump(beginTailString());      // StringBuilder
+
+// Maps
+let m: map<Int, Int> = emptyMap();
+m.set(2 + 2, 4);
+dump(m);
+
+// Специальные значения
+dump(null);
+dump(emit("msg".asComment())); // Поскольку функция emit() не возвращает значение, dump() выведет #DEBUG#: void.
+```
+
+:::note[Useful ссылки:]
+
+  [Отладка с помощью `dump(){:tact}`](/book/debug#tests-dump)
+
+:::
+
+## dumpStack
+
+```tact
+fun dumpStack();
+```
+
+Выводит все значения [постоянного состояния переменных](/book/contracts#variables) в консоль отладки контракта. Оценивается только в том случае, если параметр `debug` в [файле конфигурации](/book/config) установлен в `true{:json}`, в противном случае ничего не делает.
+
+Пример использования:
+
+```tact {6}
+contract DumpsterFire {
+    var1: Int = 0;
+    var2: Int = 5;
+
+    receive() {
+        dumpStack(); // would print 0 5
+    }
+}
+```
+
+:::note[Useful Полезные ссылки:]
+
+  [Отладка с помощью `dump(){:tact}`](/book/debug#tests-dump)
+
+:::
+
+## throw
+
+```tact
+fun throw(code: Int);
+```
+
+Псевдоним для [`nativeThrow(){:tact}`](#nativethrow).
+
+## nativeThrow
+
+```tact
+fun nativeThrow(code: Int);
+```
+
+Выдает исключение с кодом ошибки, равным `code`. Выполнение текущего контекста останавливается (операторы после `nativeThrow` не будут выполнены), и управление будет передано первому блоку [`try...catch{:tact}`](/book/statements#try-catch) в стеке вызовов. Если среди вызывающих функций нет блока `try{:tact}` или `try...catch{:tact}`, [TVM](https://docs.ton.org/learn/tvm-instructions/tvm-overview) завершит транзакцию.
+
+Попытки указать `code` за пределами диапазона $0 - 65535$ вызовут исключение с [кодом выхода 5](/book/exit-codes#5): `Целое число вне ожидаемого диапазона`.
+
+Примеры использования:
+
+```tact {2,7}
+fun thisWillTerminate() {
+    nativeThrow(42); // выбрасывание с кодом выхода 42
+}
+
+fun butThisDoesNot() {
+    try {
+        nativeThrow(42); // выбрасывание с кодом выхода 42    }
+
+    // ... логика выполнения ...
+}
+```
+
+## nativeThrowIf
+
+```tact
+fun nativeThrowIf(code: Int, condition: Bool);
+```
+
+Аналогично [`nativeThrow(){:tact}`](#nativethrow), но выбрасывает исключение условно, когда `condition` равно `true{:tact}`. В противном случае не выбрасывает.
+
+Попытки указать `code` за пределами диапазона $0 - 65535$ вызывают исключение с [кодом выхода 5](/book/exit-codes#5): `Целое число выходит за пределы ожидаемого диапазона`.
+
+Примеры использования:
+
+```tact {2,7}
+fun thisWillTerminate() {
+    nativeThrowIf(42, true); // выбрасывание с кодом выхода 42
+}
+
+fun butThisDoesNot() {
+    try {
+        nativeThrowIf(42, true); // выбрасывание с кодом выхода 422
+    }
+    // ... логика выполнения ...
+}
+```
+
+## nativeThrowUnless
+
+```tact
+fun nativeThrowUnless(code: Int, condition: Bool);
+```
+
+Аналогично [`nativeThrow(){:tact}`](#nativethrow), но выбрасывает исключение условно, когда `condition` равно `true{:tact}`. В противном случае не выбрасывает.
+
+Попытки указать `code` за пределами диапазона $0 - 65535$ вызывают исключение с [кодом выхода 5](/book/exit-codes#5): `Целое число выходит за пределы ожидаемого диапазона`.
+
+Примеры использования:
+
+```tact {2,7}
+fun thisWillTerminate() {
+    nativeThrowUnless(42, false); // выбрасывание с кодом выхода 42
+}
+
+fun butThisDoesNot() {
+    try {
+        nativeThrowUnless(42, false); // выбрасывание с кодом выхода 42
+    }
+    // ... логика выполнения ...
+}
+```
+
+[p]: /book/types#primitive-types
+[bool]: /book/types#booleans
+[int]: /book/integers
+[клетка]: /book/cells#cells
+[строитель]: /book/cells#builders
+[нарезать]: /book/cells#slices

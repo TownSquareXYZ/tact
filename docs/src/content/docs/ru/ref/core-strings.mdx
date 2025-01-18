@@ -1,0 +1,355 @@
+---
+title: Строки и StringBuilders
+description: Различные функции строк и StringBuilder из основной библиотеки Tact
+---
+
+Строки представляют собой неизменяемые последовательности символов, что означает, что после создания [`String{:tact}`][p] они не могут быть изменены.  Строки полезны для хранения текста, поэтому их можно преобразовать в тип [`Cell{:tact}`][cell] для использования в качестве тела сообщения.
+
+Чтобы иметь возможность объединять строки экономичным способом, используйте [`StringBuilder{:tact}`][p].
+
+Чтобы использовать литералы [`String{:tact}`][p] напрямую, см.: [Литералы строки](/book/expressions#string-literals).
+
+## beginString
+
+```tact
+fun beginString(): StringBuilder;
+```
+
+Создает и возвращает пустой [`StringBuilder{:tact}`][p].
+
+Пример использования:
+
+```tact
+let fizz: StringBuilder = beginString();
+```
+
+## beginComment
+
+```tact
+fun beginComment(): StringBuilder;
+```
+
+Создает и возвращает пустую строку [`StringBuilder{:tact}`][p] для построения строки комментария, которая содержит в качестве префикса результирующую строку [`String{:tact}`][p] с четырьмя нулевыми байтами. Этот формат используется для передачи текстовых комментариев в качестве текста сообщения.
+
+Пример использования:
+
+```tact
+let fizz: StringBuilder = beginComment();
+```
+
+## beginTailString
+
+```tact
+fun beginTailString(): StringBuilder;
+```
+
+Создает и возвращает пустой [`StringBuilder{:tact}`][p] для построения строки хвоста, который добавляет к результирующему [`String{:tact}`][p] один нулевой байт. Этот формат используется в различных стандартах, таких как NFT или жетоны.
+
+Пример использования:
+
+```tact
+let fizz: StringBuilder = beginTailString();
+```
+
+## beginStringFromBuilder
+
+```tact
+fun beginStringFromBuilder(b: StringBuilder): StringBuilder;
+```
+
+Создает и возвращает новый [`StringBuilder{:tact}`][p] из существующего [`StringBuilder{:tact}`][p] `b`. Полезно, когда вам нужно преобразовать существующую строку [`String{:tact}`][p] в ячейку [`Cell{:tact}`][cell] с некоторыми другими данными.
+
+Пример использования:
+
+```tact
+let fizz: StringBuilder = beginStringFromBuilder(beginString());
+```
+
+## StringBuilder.append
+
+```tact
+extends mutates fun append(self: StringBuilder, s: String);
+```
+
+Расширение функции мутации для [`StringBuilder{:tact}`][p].
+
+Добавляет [`String{:tact}`][p] `s` к [`StringBuilder{:tact}`][p].
+
+Пример использования:
+
+```tact
+let fizz: StringBuilder = beginString();
+fizz.append("о");
+fizz.append("мой");
+fizz.append("Tact!");
+```
+
+## StringBuilder.concat
+
+```tact
+extends fun concat(self: StringBuilder, s: String): StringBuilder;
+```
+
+Функция расширения для [`StringBuilder{:tact}`][p].
+
+Возвращает новый [`StringBuilder{:tact}`][p] после конкатенации с [`String{:tact}`][p] `s`. Может быть объединено в цепочку, в отличие от [`StringBuilder.append(){:tact}`](#stringbuilderappend).
+
+Пример использования:
+
+```tact
+let fizz: StringBuilder = beginString()
+    .concat("о")
+    .concat("мой")
+    .concat("Tact!");
+```
+
+## StringBuilder.toString
+
+```tact
+extends fun toString(self: StringBuilder): String;
+```
+
+Функция расширения для [`StringBuilder{:tact}`][p].
+
+Возвращает построенный [`String{:tact}`][p] из [`StringBuilder{:tact}`][p].
+
+Пример использования:
+
+```tact
+let fizz: StringBuilder = beginString();
+let buzz: String = fizz.toString();
+```
+
+## StringBuilder.toCell
+
+```tact
+extends fun toCell(self: StringBuilder): Cell;
+```
+
+Функция расширения для [`StringBuilder{:tact}`][p].
+
+Возвращает собранную [`Cell{:tact}`][cell] из [`StringBuilder{:tact}`][p].
+
+Пример использования:
+
+```tact
+let fizz: StringBuilder = beginString();
+let buzz: Cell = fizz.toCell();
+```
+
+## StringBuilder.toSlice
+
+```tact
+extends fun toSlice(self: StringBuilder): Slice;
+```
+
+Функция расширения для [`StringBuilder{:tact}`][p].
+
+Возвращает собранную [`Cell{:tact}`][cell] как [`Slice{:tact}`][slice] из [`StringBuilder{:tact}`][p]. Псевдоним для [`self.toCell().asSlice(){:tact}`](/ref/core-cells#cellasslice).
+
+Пример использования:
+
+```tact
+let s: StringBuilder = beginString();
+let fizz: Slice = s.toSlice();
+let buzz: Slice = s.toCell().asSlice();
+
+fizz == buzz; // true
+```
+
+## String.asSlice
+
+```tact
+extends fun asSlice(self: String): Slice;
+```
+
+Функция расширения для [`String{:tact}`][p].
+
+Возвращает [`Slice{:tact}`][slice] из [`String{:tact}`][p], пытаясь упаковать все его биты в непрерывный список [Cells][p], каждый из которых ссылается на следующий и открывает их все для будущего анализа.
+
+Обратите внимание, что нет никаких указаний на то, сколько байт может занять конкретный символ в [`Slice{:tact}`][slice] или насколько глубоким будет список ссылок, поэтому используйте эту функцию, только если вы знаете, что делаете.
+
+Пример использования:
+
+```tact
+let s: String = "Оно живое! Оно живое!!!";
+let fizz: Slice = s.asSlice();
+let buzz: Slice = s.asSlice().asString().asSlice();
+
+fizz == buzz; // true, но будьте осторожны, так как это не всегда так
+```
+
+:::note
+
+  Посмотрите, как функция `String.asSlice{:tact}` может использоваться на практике: [Как преобразовать `String` в `Int`](/cookbook/type-conversion#how-to-convert-a-string-to-an-int).
+
+:::
+
+## String.asComment
+
+```tact
+extends fun asComment(self: String): Cell;
+```
+
+Функция расширения для [`String{:tact}`][p].
+
+Возвращает [`Cell{:tact}`][cell] из [`String{:tact}`][p], добавляя к последнему четыре нулевых байта. Этот формат используется для передачи текстовых комментариев в качестве тел сообщений.
+
+Пример использования:
+
+```tact
+let s: String = "Когда жизнь дает вам лимоны, называйте их „желтыми апельсинами“ и продавайте по двойной цене.";
+let fizz: Cell = s.asComment();
+
+let b: StringBuilder = beginComment();
+b.append(s);
+let buzz: Cell = b.toCell();
+
+fizz == buzz; // true
+```
+
+## String.fromBase64
+
+```tact
+extends fun fromBase64(self: String): Slice;
+```
+
+Функция расширения для [`String{:tact}`][p].
+
+Возвращает [`Slice{:tact}`][slice] из декодированного [Base64](https://en.wikipedia.org/wiki/Base64) [`String{:tact}`][p]. Псевдоним для `self.asSlice().fromBase64(){:tact}`.
+
+Обратите внимание, что эта функция ограничена и берет только первые $1023$ бит данных из заданного [`String{:tact}`][p], не выдавая исключение, когда [`String{:tact}`][p] больше (т. е. содержит более $1023$ бит данных).
+
+Если заданный [`String{:tact}`][p] содержит символы не из набора Base64, будет выдано исключение с [кодом выхода 134](/book/exit-codes#134): `Недопустимый аргумент`.
+
+Пример использования:
+
+```tact
+let s: String = "SGVyZSdzIEpvaG5ueSE=";
+let fizz: Slice = s.fromBase64();
+let buzz: Slice = s.asSlice().fromBase64();
+
+fizz == buzz; // true
+```
+
+## Slice.asString
+
+```tact
+extends fun asString(self: Slice): String;
+```
+
+Функция расширения для [`Slice{:tact}`][slice].
+
+Возвращает [`String{:tact}`][p] из [`Slice{:tact}`][slice], пытаясь загрузить все его биты, не ища ссылки, если таковые имеются.
+
+Обратите внимание, что эта функция вообще не просматривает ссылки и сокращает свои выходные данные до $1023$ бит, поэтому используйте ее, только если вы знаете, что делаете.
+
+Пример использования:
+
+```tact
+let s: String = "Держи свои Slices близко, а Strings еще ближе.";
+let fizz: String = s;
+let buzz: String = s.asSlice().asString();
+
+fizz == buzz; // true, но будьте осторожны, так как это не всегда так
+```
+
+## Slice.fromBase64
+
+```tact
+extends fun fromBase64(self: Slice): Slice;
+```
+
+Функция расширения для [`Slice{:tact}`][slice].
+
+Возвращает новый [`Slice{:tact}`][slice] из декодированного [Base64](https://en.wikipedia.org/wiki/Base64) [`Slice{:tact}`][slice].
+
+Обратите внимание, что эта функция ограничена и берет только первые $1023$ бит данных из заданного [`Slice{:tact}`][slice], не выдавая исключения, если [`Slice{:tact}`][slice] имеет больше данных (т. е. когда у него есть какие-либо ссылки).
+
+Если заданный [`Slice{:tact}`][p] содержит символы не из набора Base64, будет выдано исключение с [кодом выхода 134](/book/exit-codes#134): `Недопустимый аргумент`.
+
+Пример использования:
+
+```tact
+let s: Slice = "SSBhbSBHcm9vdC4=".asSlice();
+let fizz: Slice = s.fromBase64();
+```
+
+## Int.toString
+
+```tact
+extends fun toString(self: Int): String;
+```
+
+Функция расширения для [`Int{:tact}`][int].
+
+Возвращает [`String{:tact}`][p] из значения [`Int{:tact}`][int].
+
+Пример использования:
+
+```tact
+let fizz: String = (84 - 42).toString();
+```
+
+## Int.toFloatString
+
+```tact
+extends fun toFloatString(self: Int, digits: Int): String;
+```
+
+Функция расширения для [`Int{:tact}`][int].
+
+Возвращает [`String{:tact}`][p] из значения [`Int{:tact}`][int], используя [представление с фиксированной точкой](https://en.wikipedia.org/wiki/Fixed-point_arithmetic) дробного числа, где `self` — значимая часть числа, а `digits` — количество цифр в дробной части.
+
+Точнее, `digits` — это параметр возведения в степень выражения $10^{-\mathrm{digits}}$, который дает представленное дробное число при умножении на фактическое значение [`Int{:tact}`][int]. Параметр `digits` должен находиться в замкнутом интервале: $0 <$ `digits` $< 78$, в противном случае будет выдано исключение с [кодом выхода 134](/book/exit-codes#134): `Недопустимый аргумент`.
+
+Пример использования:
+
+```tact
+let fizz: String = (42).toFloatString(9); // "0.000000042"
+```
+
+## Int.toCoinsString
+
+```tact
+extends fun toCoinsString(self: Int): String;
+```
+
+Функция расширения для [`Int{:tact}`][int].
+
+Возвращает [`String{:tact}`][p] из значения [`Int{:tact}`][int], используя [представление с фиксированной точкой](https://en.wikipedia.org/wiki/Fixed-point_arithmetic) дробного числа. Псевдоним для `self.toFloatString(9){:tact}`.
+
+Используется для представления значений [nanoToncoin](/book/integers#nanotoncoin) [`Int{:tact}`][int] с помощью строк.
+
+Пример использования:
+
+```tact
+let nanotons: Int = 42;
+let fizz: String = nanotons.toCoinsString();
+let buzz: String = nanotons.toFloatString(9);
+
+fizz == buzz; // true, оба хранят "0.000000042"
+```
+
+## Address.toString
+
+```tact
+extends fun toString(self: Address): String;
+```
+
+Функция расширения для [`Address{:tact}`][p].
+
+Возвращает [`String{:tact}`][p] из [`Address{:tact}`][p].
+
+Пример использования:
+
+```tact
+let community: Address = address("UQDpXLZKrkHsOuE_C1aS69C697wE568vTnqSeRfBXZfvmVOo");
+let fizz: String = community.toString();
+```
+
+[p]: /book/types#primitive-types
+[bool]: /book/types#booleans
+[int]: /book/integers
+[клетка]: /book/cells#cells
+[нарезать]: /book/cells#slices

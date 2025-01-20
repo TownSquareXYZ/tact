@@ -1,0 +1,444 @@
+---
+title: DeDust.io
+description: На этой странице перечислены примеры работы с DeDust, децентрализованной биржей и автоматизированным маркет-мейкером, построенным на блокчейне TON и протоколе DeDust
+sidebar:
+  order: 1
+---
+
+[DeDust](https://dedust.io) — это децентрализованная биржа (DEX) и автоматизированный маркет-мейкер (AMM), созданные на основе [блокчейна TON](https://ton.org) и [протоколе DeDust 2.0](https://docs.dedust.io/reference/tlb-schemes). При разработке системы DeDust особое внимание уделяется удобству использования, экономичности использования газа и расширяемости.
+
+Прежде чем продолжить, ознакомьтесь со следующим:
+
+- [Получение сообщений](/book/receive/)
+- [Отправка сообщений](/book/send/)
+- [Взаимозаменяемые токены (Жетоны)](/cookbook/jettons/)
+- [Документация DeDust: Концепции](https://docs.dedust.io/docs/concepts)
+
+## Обмены
+
+Подробнее об обменах читайте в [документации DeDust](https://docs.dedust.io/docs/swaps).
+
+:::caution
+
+  Важно убедиться, что контракты развернуты. Отправка средств на неактивный контракт может привести к невозвратимым потерям.
+
+:::
+
+Все виды обменов используют структуры `SwapStep{:tact}` и `SwapParams{:tact}`:
+
+```tact
+/// https://docs.dedust.io/reference/tlb-schemes#swapstep
+struct SwapStep {
+    // Пул, который будет выполнять обмен, т. е. пары вроде TON/USDT или USDT/DUST
+    poolAddress: Address;
+
+    // Тип обмена, который нужно сделать, на данный момент может быть только 0
+    kind: Int as uint1 = 0;
+
+    // Минимальный объем обмена
+    // Если фактическое значение меньше указанного, обмен будет отклонен
+    limit: Int as coins = 0;
+
+    // Ссылка на следующий шаг, который можно использовать для многоступенчатых обменов.
+    // Тип здесь на самом деле `SwapStep?`,
+    // но указание рекурсивных типов еще не разрешено в Tact
+    nextStep: Cell?;
+}
+
+/// https://docs.dedust.io/reference/tlb-schemes#swapparams
+struct SwapParams {
+    // Указывает крайний срок для обмена, чтобы отклонить обмен, поступающий в пул с опозданием
+    // Принимает количество секунд, прошедших с эпохи UNIX
+    // По умолчанию равно 0, что отменяет крайний срок
+    deadline: Int as uint32 = 0;
+
+    // Указывает адрес, на который будут отправлены средства после обмена
+    // По умолчанию используется значение "null", что означает, что при обмене используется адрес отправителя
+    recipientAddress: Address? = null;
+
+    // Реферальный адрес, необходимый для реферальной программы DeDust
+    // По умолчанию используется значение `null`
+    referralAddress: Address? = null;
+
+    // Пользовательская полезная нагрузка, которая будет добавлена к переводу средств при успешном обмене
+    // По умолчанию имеет значение `null`
+    fulfillPayload: Cell? = null;
+
+    // Пользовательская полезная нагрузка, которая будет добавлена к переводу средств при отклоненном обмене
+    // По умолчанию имеет значение `null`
+    rejectPayload: Cell? = null;
+}
+```
+
+### Обмен Toncoin на любой жетон
+
+:::note
+В руководствах ниже используется [хранилище жетонов](https://docs.dedust.io/docs/concepts#vault). Чтобы получить его адрес для вашего жетона, обратитесь к [данному руководству](https://docs.dedust.io/docs/swaps#step-1-find-the-vault-scale).
+:::
+
+```tact
+/// https://docs.dedust.io/reference/tlb-schemes#message-swap
+message(0xea06185d) NativeSwap {
+    // Уникальный идентификатор, используемый для отслеживания транзакций по нескольким контрактам
+    // По умолчанию 0, что означает, что мы не помечаем сообщения для отслеживания их цепочек
+    queryId: Int as uint64 = 0;
+
+    // Сумма Toncoin для обмена
+    amount: Int as coins;
+
+    // Встроенные поля структуры SwapStep
+    poolAddress: Address;
+    kind: Int as uint1 = 0;
+    limit: Int as coins = 0;
+    nextStep: SwapStep? = null;
+
+    // Набор параметров, относящихся ко всему обмену
+    swapParams: SwapParams;
+}
+
+// Допустим, `swapAmount` равно `ton("0.1")`, что составляет 10000000 nanoToncoin
+fun swapToncoinForUSDT(swapAmount: Int) {
+    send(SendParameters{
+        // Адрес хранилища TON, куда нужно отправить сообщение
+        to: address("EQDa4VOnTYlLvDJ0gZjNYm5PXfSmmtL6Vs6A_CZEtXCNICq_"),
+        // Сумма обмена плюс комиссия за сделку
+        value: swapAmount + ton("0.2"),
+        body: NativeSwap{
+            amount: swapAmount,
+            // Адрес пула обмена, который в данном случае представляет собой пару TON/USDT
+            poolAddress: address("EQA-X_yo3fzzbDbJ_0bzFWKqtRuZFIRa1sJsveZJ1YpViO3r"),
+            // Набор параметров, относящихся ко всему обмену 
+            swapParams: SwapParams{}, // использовать значения по умолчанию
+        }.toCell(),
+    });
+}
+
+//
+// Вспомогательные структуры, описанные ранее на этой странице
+//
+
+struct SwapStep {
+    poolAddress: Address;
+    kind: Int as uint1 = 0;
+    limit: Int as coins = 0;
+    nextStep: Cell?;
+}
+
+struct SwapParams {
+    deadline: Int as uint32 = 0;
+    recipientAddress: Address? = null;
+    referralAddress: Address? = null;
+    fulfillPayload: Cell? = null;
+    rejectPayload: Cell? = null;
+}
+```
+
+### Обмен жетона на другой жетон или Toncoin
+
+```tact
+/// https://docs.dedust.io/reference/tlb-schemes#message-swap-1
+message(0xe3a0d482) JettonSwapPayload {
+    // Встроенные поля структуры SwapStep
+    poolAddress: Address;
+    kind: Int as uint1 = 0;
+    limit: Int as coins = 0;
+    nextStep: SwapStep? = null;
+
+    // Набор параметров, относящихся ко всему обмену
+    swapParams: SwapParams;
+}
+
+/// ПРИМЕЧАНИЕ: Чтобы рассчитать и предоставить адрес кошелька жетона для конечного пользователя,
+///       обязательно проверьте ссылки после этого фрагмента кода
+fun swapJetton(targetJettonWalletAddress: Address) {
+    send(SendParameters{
+        to: targetJettonWalletAddress,
+        value: ton("0.3"),
+        body: JettonTransfer{
+            // Уникальный идентификатор, используемый для отслеживания транзакций по нескольким контрактам
+            // Установлено значение 0, что означает, что мы не помечаем сообщения для отслеживания их цепочек
+            queryId: 0,
+            // Сумма жетонов для обмена
+            amount: 10, // ПРИМЕЧАНИЕ: измените на свою
+            // Адрес хранилища жетона для отправки сообщения
+            получателю: address("EQAYqo4u7VF0fa4DPAebk4g9lBytj2VFny7pzXR0trjtXQaO"),
+            // Куда вернуть излишки средств
+            responseDestination: myAddress(),
+            forwardTonAmount: ton("0.25"),
+            forwardPayload: JettonSwapPayload{
+                // Адрес обменного пула, который в данном случае является парой TON/USDT
+                poolAddress: address("EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"),
+                // Набор параметров, относящихся ко всему обмену
+                swapParams: SwapParams{}, // используйте значения по умолчанию
+            }.toCell(),
+        }.toCell(),
+    });
+}
+
+//
+// Вспомогательные структуры, описанные ранее на этой странице
+//
+
+struct SwapStep {
+    poolAddress: Address;
+    kind: Int as uint1 = 0;
+    limit: Int as coins = 0;
+    nextStep: Cell?;
+}
+
+struct SwapParams {
+    deadline: Int as uint32 = 0;
+    recipientAddress: Address? = null;
+    referralAddress: Address? = null;
+    fulfillPayload: Cell? = null;
+    rejectPayload: Cell? = null;
+}
+
+//
+// Сообщения из стандарта жетона
+//
+
+message(0xf8a7ea5) JettonTransfer {
+    queryId: Int as uint64;
+    amount: Int as coins;
+    destination: Address;
+    responseDestination: Address;
+    customPayload: Cell? = null;
+    forwardTonAmount: Int as coins;
+    forwardPayload: Cell?; // slightly adjusted
+}
+```
+
+:::note[Useful Полезные ссылки:]
+
+  [Получение адреса кошелька жетона в документации TON](https://docs.ton.org/develop/dapps/asset-processing/jettons#retrieving-jetton-wallet-addresses-for-a-given-user)\
+  [Как рассчитать адрес кошелька жетона пользователя (в автономном режиме)?](https://docs.ton.org/v3/guidelines/dapps/cookbook#how-to-calculate-users-jetton-wallet-address-offline)
+
+:::
+
+## Предоставление ликвидности
+
+Чтобы предоставить ликвидность определенному пулу DeDust, необходимо предоставить оба актива. Затем пул выпустит специальные _токены Lp_ на адрес вкладчика.
+
+Подробнее о предоставлении ликвидности читайте в [документации DeDust](https://docs.dedust.io/docs/liquidity-provisioning).
+
+```tact
+import "@stdlib/deploy";
+
+/// https://docs.dedust.io/reference/tlb-schemes#message-deposit_liquidity-1
+message(0x40e108d6) JettonDepositLiquidity {
+    // Тип пула: 0 для волатильного, 1 для стабильного
+    // Волатильный пул основан на формуле "Постоянного продукта"
+    // Стабильный обменный пул оптимизирован для активов, оптимизирован для активов с почти одинаковой стоимостью,
+    // например, USDT/USDC, TON/stTON и т. д.
+    poolType: Int as uint1;
+
+    // Предоставленные активы
+    asset0: Asset;
+    asset1: Asset;
+
+    // Минимальное количество токенов LP для получения
+    // Если предоставлено меньше ликвидности, предоставление будет отклонено
+    // Значение по умолчанию 0, игнорирует это значение
+    minimalLpAmount: Int as coins = 0;
+
+    // Целевая сумма первого актива
+    targetBalances0: Int as coins;
+
+    // Целевая сумма второго актива
+    targetBalances1: Int as coins;
+
+    // Пользовательская полезная нагрузка, прикрепленная к транзакции, если предоставление успешно
+    // Значение по умолчанию `null`, что означает отсутствие полезной нагрузки
+    fulfillPayload: Cell? = null;
+
+    // Пользовательская полезная нагрузка, прикрепленная к транзакции, если предоставление отклонено
+    // Значение по умолчанию `null`, что означает отсутствие полезной нагрузки
+    rejectPayload: Cell? = null;
+}
+
+/// https://docs.dedust.io/reference/tlb-schemes#message-deposit_liquidity
+message(0xd55e4686) NativeDepositLiquidity {
+    // Уникальный идентификатор, используемый для отслеживания транзакций по нескольким контрактам
+    // По умолчанию равно 0, что означает, что мы не помечаем сообщения для отслеживания их цепочек
+    queryId: Int as uint64 = 0;
+
+    // Сумма Toncoin для депозита
+    amount: Int as coins;
+
+    // Встроенные поля сообщения JettonDepositLiquidity без префикса кода операции
+    poolType: Int as uint1;
+    asset0: Asset;
+    asset1: Asset;
+    minimalLpAmount: Int as coins = 0;
+    targetBalances0: Int as coins;
+    targetBalances1: Int as coins;
+    fulfillPayload: Cell? = null;
+    rejectPayload: Cell? = null;
+}
+
+/// https://docs.dedust.io/reference/tlb-schemes#asset
+struct Asset {
+    // Укажите 0 для нативного (TON) и пропустите все следующие поля
+    // Укажите 1 для жетона, а затем вы должны установить ненулевые значения для следующих полей
+    type: Int as uint4;
+
+    workchain: Int as uint8 = 0; // Оба этих нуля будут удалены во время функции .build(). Останется только тип.
+    address: Int as uint256 = 0; 
+}
+
+const PoolTypeVolatile: Int = 0;
+const PoolTypeStable: Int = 1;
+
+const AssetTypeNative: Int = 0b0000;
+const AssetTypeJetton: Int = 0b0001;
+
+const JettonProvideLpGas: Int = ton("0.5");
+const JettonProvideLpGasFwd: Int = ton("0.4");
+const TonProvideLpGas: Int = ton("0.15");
+
+// Этот пример напрямую использует предоставленный `myJettonWalletAddress`
+// В реальных сценариях надежнее вычислить этот адрес on-chain или сохранить его во время инициализации, чтобы предотвратить любые проблемы
+fun provideLiquidity(myJettonWalletAddress: Address) {
+    let jettonMasterRaw = parseStdAddress(
+        address("EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs")
+        .asSlice()
+    );
+
+    // Шаг 1. Подготовка входных данных
+    let jettonAmount = ton("1");
+    let tonAmount = ton("1");
+
+    let asset0 = Asset{
+        type: AssetTypeNative,
+    };
+    let asset1 = Asset{
+        type: AssetTypeJetton,
+        workchain: jettonMasterRaw.workchain,
+        address: jettonMasterRaw.address,
+    };
+
+    // Шаг 2. Депозит жетонов в хранилище
+    let jettonDepositBody = JettonDepositLiquidity{
+        poolType: PoolTypeVolatile,
+        asset0,
+        asset1,
+        targetBalances0: tonAmount,
+        targetBalances1: jettonAmount,
+    }.build(); // обратите внимание на .build() а не на .toCell(),
+               // так как нам нужна некоторая пользовательская логика сериализации!
+
+    send(SendParameters{
+        to: myJettonWalletAddress,
+        value: JettonProvideLpGas,
+        body: JettonTransfer{
+            queryId: 42,
+            amount: jettonAmount,
+            // Хранилище жетона
+            destination: address("EQAYqo4u7VF0fa4DPAebk4g9lBytj2VFny7pzXR0trjtXQaO"),
+            responseDestination: myAddress(),
+            forwardTonAmount: JettonProvideLpGasFwd,
+            forwardPayload: jettonDepositBody,
+        }.toCell()
+    });
+
+    // Шаг 3. Внесите TON в хранилище
+    let nativeDepositBody = NativeDepositLiquidity{
+        queryId: 42,
+        amount: tonAmount,
+        poolType: PoolTypeVolatile,
+        asset0,
+        asset1,
+        targetBalances0: tonAmount,
+        targetBalances1: jettonAmount,
+    }.build(); // обратите внимание на .build(), а не на .toCell(),
+               // так как нам нужна некоторая пользовательская логика сериализации!!
+
+    send(SendParameters{
+        to: address("EQDa4VOnTYlLvDJ0gZjNYm5PXfSmmtL6Vs6A_CZEtXCNICq_"),
+        value: tonAmount + TonProvideLpGas,
+        body: nativeDepositBody,
+    });
+}
+
+//
+// Вспомогательные функции расширения для построения соответствующих структур и сообщений
+//
+
+extends fun build(self: Asset): Cell {
+    let assetBuilder = beginCell()
+        .storeUint(self.type, 4);
+
+    if (self.type == AssetTypeNative) {
+        return assetBuilder.endCell();
+    }
+
+    if (self.type == AssetTypeJetton) {
+        return assetBuilder
+            .storeUint(self.workchain, 8)
+            .storeUint(self.address, 256)
+            .endCell();
+    }
+
+    // Неизвестный тип актива
+    return beginCell().endCell();
+}
+
+extends fun build(self: JettonDepositLiquidity): Cell {
+    return beginCell()
+        .storeUint(0x40e108d6, 32)
+        .storeUint(self.poolType, 1)
+        .storeSlice(self.asset0.build().asSlice())
+        .storeSlice(self.asset1.build().asSlice())
+        .storeCoins(self.minimalLpAmount)
+        .storeCoins(self.targetBalances0)
+        .storeCoins(self.targetBalances1)
+        .storeMaybeRef(self.fulfillPayload)
+        .storeMaybeRef(self.rejectPayload)
+        .endCell();
+}
+
+extends fun build(self: NativeDepositLiquidity): Cell {
+    return beginCell()
+        .storeUint(0xd55e4686, 32)
+        .storeUint(self.queryId, 64)
+        .storeCoins(self.amount)
+        .storeUint(self.poolType, 1)
+        .storeSlice(self.asset0.build().asSlice())
+        .storeSlice(self.asset1.build().asSlice())
+        .storeRef(
+            beginCell()
+                .storeCoins(self.minimalLpAmount)
+                .storeCoins(self.targetBalances0)
+                .storeCoins(self.targetBalances1)
+                .endCell()
+        )
+        .storeMaybeRef(self.fulfillPayload)
+        .storeMaybeRef(self.rejectPayload)
+        .endCell();
+}
+
+//
+// Сообщения из стандарта жетона
+//
+
+message(0xf8a7ea5) JettonTransfer {
+    queryId: Int as uint64;
+    amount: Int as coins;
+    destination: Address;
+    responseDestination: Address?;
+    customPayload: Cell? = null;
+    forwardTonAmount: Int as coins;
+    forwardPayload: Cell?; // немного скорректировано
+}
+```
+
+### Вывод ликвидности
+
+Для вывода ликвидности требуется сжигание токенов LP. Вы можете обратиться к примерам сжигания жетонов в [соответствующем разделе страницы подготовки жетонов](/cookbook/jettons#burning-jetton). Однако следует добавить больше Toncoin, чем для обычного использования, поскольку добавление слишком малого количества может привести к тому, что токены LP будут сожжены, но ликвидность из пула не будет отправлена (или будет отправлена только частично). Поэтому рассмотрите возможность присоединения Toncoin на сумму не менее $0.5$ — излишняя сумма будет возвращена.
+
+:::tip[Hey Привет!]
+
+Не нашли свой любимый пример взаимодействия DeDust? У вас есть крутые реализации? [Пожалуйста, делитесь!](https://github.com/tact-lang/tact/issues)
+
+:::

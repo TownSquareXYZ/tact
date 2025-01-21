@@ -1,11 +1,6 @@
-import { __DANGER_resetNodeId } from "../../grammar/ast";
 import { itShouldNotCompile } from "./util";
 
 describe("fail-const-eval", () => {
-    beforeEach(() => {
-        __DANGER_resetNodeId();
-    });
-
     itShouldNotCompile({
         testName: "const-eval-div-by-zero",
         errorMessage:
@@ -96,12 +91,12 @@ describe("fail-const-eval", () => {
     itShouldNotCompile({
         testName: "const-eval-shl-invalid-bits1",
         errorMessage:
-            "Cannot evaluate expression to a constant: the number of bits shifted ('257') must be within [0..256] range",
+            "the number of bits shifted ('257') must be within [0..256] range",
     });
     itShouldNotCompile({
         testName: "const-eval-shl-invalid-bits2",
         errorMessage:
-            "Cannot evaluate expression to a constant: the number of bits shifted ('-1') must be within [0..256] range",
+            "the number of bits shifted ('-1') must be within [0..256] range",
     });
     itShouldNotCompile({
         testName: "const-eval-unboxing-null",
@@ -161,7 +156,7 @@ describe("fail-const-eval", () => {
     itShouldNotCompile({
         testName: "const-eval-repeat-upper-bound",
         errorMessage:
-            "Cannot evaluate expression to a constant: repeat argument must be a number between -2^256 (inclusive) and 2^31 - 1 (inclusive)",
+            "Cannot evaluate expression to a constant: repeat argument '2147483648' must be a number between -2^256 (inclusive) and 2^31 - 1 (inclusive)",
     });
     itShouldNotCompile({
         testName: "const-eval-ascii-overflow",

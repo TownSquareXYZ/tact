@@ -1,5 +1,5 @@
 {
-  "$schema": "http://raw.githubusercontent.com/tact-lang/tact/main/schemas/configSchema.json",
+  "$schema": "../../config/configSchema.json",
   "projects": [
     {
       "name": "const-eval-invalid-address",
@@ -225,6 +225,11 @@
     {
       "name": "scope-const-shadows-stdlib-ident",
       "path": "./contracts/scope-const-shadows-stdlib-ident.tact",
+      "output": "./contracts/output"
+    },
+    {
+      "name": "sha256-expects-string-or-slice",
+      "path": "./contracts/sha256-expects-string-or-slice.tact",
       "output": "./contracts/output"
     }
   ]

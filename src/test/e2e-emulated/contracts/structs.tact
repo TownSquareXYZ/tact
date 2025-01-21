@@ -35,6 +35,13 @@ struct Coin {
     second: Int as uint32;
 }
 
+struct VarIntegers {
+    a: Int as varint16;
+    b: Int as varint32;
+    c: Int as varuint16;
+    d: Int as varuint32;
+}
+
 struct IntFields {
     i1: Int as int1;
     i2: Int as int2;
@@ -44,7 +51,7 @@ struct IntFields {
     i257: Int as int257;
 }
 
-message(0xea01f46a) UintFields {
+message(0xea01f469 + 1) UintFields {
     u1: Int as uint1;
     u2: Int as uint2;
     u3: Int as uint3;
@@ -55,6 +62,10 @@ message(0xea01f46a) UintFields {
 
 fun directParse(payload: Cell): Coin {
     return Coin.fromCell(payload);
+}
+
+fun directParseVarIntegers(payload: Cell): VarIntegers {
+    return VarIntegers.fromCell(payload);
 }
 
 struct LongStruct15 {
@@ -318,6 +329,17 @@ fun destructuringTest7(): S1 {
     return S1 {a: e, b: b, c: a};
 }
 
+fun destructuringTest8(): Int {
+    let s = S {
+        a: true,
+        b: 42
+    };
+
+    let S {b, ..} = s;
+
+    return b;
+}
+
 contract StructsTester {
     s1: S = S {a: false, b: 21 + 21};
     s2: S;
@@ -471,6 +493,21 @@ contract StructsTester {
         );
         dump(coin.first);
         dump(coin.second);
+    }
+
+    receive("exampleVarIntegers") {
+        let varInts = directParseVarIntegers(
+            beginCell()
+            .storeVarInt16(1)
+            .storeVarInt32(2)
+            .storeVarUint16(3)
+            .storeVarUint32(4)
+            .endCell()
+        );
+        dump(varInts.a);
+        dump(varInts.b);
+        dump(varInts.c);
+        dump(varInts.d);
     }
 
     get fun longStruct15Test(): LongStruct15 {
@@ -1100,5 +1137,20 @@ contract StructsTester {
 
     get fun destructuringTest7Const(): S1 {
         return destructuringTest7();
+    }
+
+    get fun destructuringTest8(): Int {
+        let s = S {
+            a: true,
+            b: 42
+        };
+
+        let S {b, ..} = s;
+
+        return b;
+    }
+
+    get fun destructuringTest8Const(): Int {
+        return destructuringTest8();
     }
 }

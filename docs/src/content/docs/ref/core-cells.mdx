@@ -170,7 +170,7 @@ Usage example:
 
 ```tact
 let b: Builder = beginCell();
-let fizz: Builder = b.storeUint(42, 7);
+let fizz: Builder = b.storeInt(42, 7);
 ```
 
 ## Builder.storeBool
@@ -207,6 +207,24 @@ Usage example:
 let b: Builder = beginCell();
 let fizz: Builder = b.storeBit(true);  // writes 1
 let buzz: Builder = b.storeBit(false); // writes 0
+```
+
+## Builder.storeBuilder
+
+```tact
+extends fun storeBuilder(self: Builder, cell: Builder): Builder;
+```
+
+Extension function for the [`Builder{:tact}`][builder].
+
+Appends all data from a [`Builder{:tact}`][builder] `cell` to the copy of the [`Builder{:tact}`][builder]. Returns that copy.
+
+Usage example:
+
+```tact
+let b: Builder = beginCell().storeCoins(42);
+let fizz: Builder = beginCell().storeBuilder(b);
+b.endCell() == fizz.endCell(); // true
 ```
 
 ## Builder.storeSlice
@@ -634,15 +652,45 @@ Attempts to load more data than [`Slice{:tact}`][slice] contains throw an except
 Usage examples:
 
 ```tact
-let s: Slice = beginCell().storeRef(emptyCell()).asSlice();
-let fizz: Cell = s.loadRef();
+let s1: Slice = beginCell().storeRef(emptyCell()).asSlice();
+let fizz: Cell = s1.loadRef();
 
-let s: Slice = beginCell()
+let s2: Slice = beginCell()
     .storeRef(emptyCell())
-    .storeRef(emptyCell())
+    .storeRef(s1.asCell())
     .asSlice();
-let ref1: Cell = s.loadRef();
-let ref2: Cell = s.loadRef();
+let ref1: Cell = s2.loadRef();
+let ref2: Cell = s2.loadRef();
+ref1 == ref2; // false
+```
+
+## Slice.preloadRef
+
+```tact
+extends fun preloadRef(self: Slice): Cell;
+```
+
+Extension function for the [`Slice{:tact}`][slice].
+
+Preloads the next reference from the [`Slice{:tact}`][slice] as a [`Cell{:tact}`][cell]. Doesn't modify the original [`Slice{:tact}`][slice].
+
+Attempts to preload such reference [`Cell{:tact}`][cell] when [`Slice{:tact}`][slice] doesn't contain it throw an exception with [exit code 8](/book/exit-codes#8): `Cell overflow`.
+
+Attempts to preload more data than [`Slice{:tact}`][slice] contains throw an exception with [exit code 9](/book/exit-codes#9): `Cell underflow`.
+
+Usage examples:
+
+```tact
+let s1: Slice = beginCell().storeRef(emptyCell()).asSlice();
+let fizz: Cell = s1.preloadRef(); // didn't modify s1
+
+let s2: Slice = beginCell()
+    .storeRef(emptyCell())
+    .storeRef(s1.asCell())
+    .asSlice();
+let ref1: Cell = s2.preloadRef();
+let ref2: Cell = s2.preloadRef();
+ref1 == ref2; // true
 ```
 
 ## Slice.refs
@@ -912,7 +960,7 @@ fun cautiousParse(payload: Cell): GuessCoin? {
 ## Struct.fromSlice
 
 ```tact
-extends fun fromSlice(self: Struct, cell: Slice): Struct;
+extends fun fromSlice(self: Struct, slice: Slice): Struct;
 ```
 
 Extension function for any structure type [Struct][struct].
@@ -1036,7 +1084,7 @@ fun cautiousParse(payload: Cell): TripleAxe? {
 
 
 ```tact
-extends fun fromSlice(self: Message, cell: Slice): Message;
+extends fun fromSlice(self: Message, slice: Slice): Message;
 ```
 
 Extension function for any message type [Message][message].

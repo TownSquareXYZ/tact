@@ -31,6 +31,24 @@ Allowed value types:
 * [Struct](/book/structs-and-messages#structs)
 * [Message](/book/structs-and-messages#messages)
 
+## Serialization
+
+It's possible to do [integer serialization](/book/integers#common-serialization-types) of map keys, values or both to [preserve space and reduce storage costs](/book/integers#serialization):
+
+```tact
+struct SerializedMapInside {
+    // Both keys and values here would be serialized as 8-bit unsigned integers,
+    // thus preserving the space and reducing storage costs:
+    countersButCompact: map<Int as uint8, Int as uint8>;
+}
+```
+
+:::note
+
+  Read more about serialization in Tact: [Compatibility with FunC](/book/func#convert-serialization).
+
+:::
+
 ## Operations
 
 ### Declare, `emptyMap()` {#emptymap}
@@ -57,6 +75,11 @@ Note, that [persistent state variables](/book/contracts#variables) of type `map<
 
 ### Set values, `.set()` {#set}
 
+```tact
+// K and V correspond to the key and value types of the given map
+extends mutates fun set(self: map<K, V>, key: K, val: V);
+```
+
 To set or replace the value under a key call the `.set(){:tact}` [method](/book/functions#extension-function), which is accessible for all maps.
 
 ```tact
@@ -73,7 +96,12 @@ fizz.set(7, 68); // key 7 now points to value 68
 
 ### Get values, `.get()` {#get}
 
-To check if a key is found in the map by calling the `.get(){:tact}` [method](/book/functions#extension-function), which is accessible for all maps. This will return `null{:tact}` if the key is missing, or the value if the key is found.
+```tact
+// K and V correspond to the key and value types of the given map
+extends fun get(self: map<K, V>, key: K): V?;
+```
+
+To check if a key is found in the map by calling the `.get(){:tact}` [method](/book/functions#extension-function), which is accessible for all maps. This will return [`null{:tact}`](/book/optionals) if the key is missing, or the value if the key is found.
 
 ```tact
 // Empty map
@@ -96,7 +124,106 @@ if (gotButUnsure != null) {
 }
 ```
 
+### Replace values, `.replace()` {#replace}
+
+<Badge text="Available since Tact 1.6 (not released yet)" variant="tip" size="medium"/><p/>
+
+```tact
+// K and V correspond to the key and value types of the given map
+extends mutates fun replace(self: map<K, V>, key: K, val: V): Bool;
+```
+
+To replace the value under a key, if such a key exists, use the `.replace(){:tact}` [method](/book/functions#extension-function). It returns `true{:tact}` on successful replacement and `false{:tact}` otherwise.
+
+```tact
+// Empty map
+let fizz: map<Int, Int> = emptyMap();
+
+// Setting a couple of values under different keys
+fizz.set(7, 70);
+fizz.set(42, 42);
+
+// Overriding one of the existing key-value pairs
+let replaced1 = fizz.replace(7, 68); // key 7 now points to value 68
+replaced1; // true
+
+// Trying to replace the value in a non-existing key-value pair will do nothing
+let replaced2 = fizz.replace(8, 68); // no key 8, so nothing was altered
+replaced2; // false
+```
+
+If the given value is [`null{:tact}`](/book/optionals) and the key exists, the entry will be deleted from the map.
+
+```tact
+// Empty map
+let fizz: map<Int, Int> = emptyMap();
+
+// Setting a couple of values under different keys
+fizz.set(7, 70);
+fizz.set(42, 42);
+
+// Overriding one of the existing key-value pairs
+let replaced1 = fizz.replace(7, null); // the entry under key 7 is now deleted
+replaced1; // true
+
+// Trying to replace the value in a non-existing key-value pair will do nothing
+let replaced2 = fizz.replace(8, null); // no key 8, so nothing was altered
+replaced2; // false
+```
+
+### Replace and get old value, `.replaceGet()` {#replaceget}
+
+<Badge text="Available since Tact 1.6 (not released yet)" variant="tip" size="medium"/><p/>
+
+```tact
+// K and V correspond to the key and value types of the given map
+extends mutates fun replaceGet(self: map<K, V>, key: K, val: V): V?;
+```
+
+Like [`.replace()`](#replace), but instead of returning a [`Bool{:tact}`](/book/types#booleans) it returns the old (pre-replacement) value on successful replacement and [`null{:tact}`](/book/optionals) otherwise.
+
+```tact
+// Empty map
+let fizz: map<Int, Int> = emptyMap();
+
+// Setting a couple of values under different keys
+fizz.set(7, 70);
+fizz.set(42, 42);
+
+// Overriding one of the existing key-value pairs
+let oldVal1 = fizz.replaceGet(7, 68); // key 7 now points to value 68
+oldVal1; // 70
+
+// Trying to replace the value in a non-existing key-value pair will do nothing
+let oldVal2 = fizz.replaceGet(8, 68); // no key 8, so nothing was altered
+oldVal2; // null
+```
+
+If the given value is [`null{:tact}`](/book/optionals) and the key exists, the entry will be deleted from the map.
+
+```tact
+// Empty map
+let fizz: map<Int, Int> = emptyMap();
+
+// Setting a couple of values under different keys
+fizz.set(7, 70);
+fizz.set(42, 42);
+
+// Overriding one of the existing key-value pairs
+let oldVal1 = fizz.replaceGet(7, null); // the entry under key 7 is now deleted
+oldVal1; // 70
+
+// Trying to replace the value in a non-existing key-value pair will do nothing
+let oldVal2 = fizz.replaceGet(8, null); // no key 8, so nothing was altered
+oldVal2; // null
+```
+
 ### Delete entries, `.del()` {#del}
+
+```tact
+// K and V correspond to the key and value types of the given map
+extends mutates fun del(self: map<K, V>, key: K): Bool;
+```
 
 To delete a single key-value pair (single entry), use the `.del(){:tact}` [method](/book/functions#extension-function). It returns `true{:tact}` in the case of successful deletion and `false{:tact}` otherwise.
 
@@ -139,6 +266,11 @@ With this approach all previous entries of the map are completely discarded from
 
 <Badge text="Available since Tact 1.5" variant="tip" size="medium"/><p/>
 
+```tact
+// K and V correspond to the key and value types of the given map
+extends fun exists(self: map<K, V>, key: K): Bool;
+```
+
 The `.exists(){:tact}` [method](/book/functions#extension-function) on maps returns `true{:tact}` if the value under the given key exists in the map and `false{:tact}` otherwise.
 
 ```tact
@@ -166,6 +298,11 @@ if (fizz.get(1 / 2) != null) { // also true, but consumes more gas
 
 ### Check if empty, `.isEmpty()` {#isempty}
 
+```tact
+// K and V correspond to the key and value types of the given map
+extends fun isEmpty(self: map<K, V>): Bool;
+```
+
 The `.isEmpty(){:tact}` [method](/book/functions#extension-function) on maps returns `true{:tact}` if the map is empty and `false{:tact}` otherwise:
 
 ```tact
@@ -185,6 +322,11 @@ if (fizz == null) {
 ### Compare with `.deepEquals()` {#deepequals}
 
 <Badge text="Available since Tact 1.5" variant="tip" size="medium"/><p/>
+
+```tact
+// K and V correspond to the key and value types of the given map
+extends fun deepEquals(self: map<K, V>, other: map<K, V>): Bool;
+```
 
 The `.deepEquals(){:tact}` [method](/book/functions#extension-function) on maps returns `true{:tact}` if all entries of the map match corresponding entries of another map, ignoring possible differences in the [underlying serialization logic][hashmap]. Returns `false{:tact}` otherwise.
 
@@ -229,7 +371,14 @@ There, both maps are formed manually and both contain the same key-value pair. I
 
 ### Convert to a `Cell`, `.asCell()` {#ascell}
 
-Use `.asCell(){:tact}` [method](/book/functions#extension-function) on maps to convert all their values to a [`Cell{:tact}`][cell] type. Be mindful, that [`Cell{:tact}`][cell] type is able to store up to 1023 bits, so converting larger maps to the Cell will result in error.
+```tact
+// K and V correspond to the key and value types of the given map
+extends fun asCell(self: map<K, V>): Cell;
+```
+
+On [TVM][tvm], maps are represented as a [`Cell{:tact}`][cell] type and it's possible to construct and parse them directly. However, doing so is highly error-prone and quite messy, which is why Tact provides maps as a standalone composite type with many of the helper methods mentioned above.
+
+To cast maps back to the underlying [`Cell{:tact}`][cell] type, use the `.asCell(){:tact}` [method](/book/functions#extension-function). Since maps are initialized to `null{:tact}`, calling `.asCell(){:tact}` on a map with no values assigned will return `null{:tact}` and **not** an empty [`Cell{:tact}`][cell].
 
 As an example, this method is useful for sending small maps directly in the body of the reply:
 
@@ -251,7 +400,7 @@ contract Example {
     // Internal message receiver, which responds to empty messages
     receive() {
         // Here we're converting the map to a Cell and making a reply with it
-        self.reply(self.fizz.asCell());
+        self.reply(self.fizz.asCell()!!); // explicitly asserting that the map isn't null
     }
 }
 ```
@@ -345,24 +494,6 @@ It's often useful to set an upper-bound restriction on such maps, so that you [d
 
 :::
 
-## Serialization
-
-It's possible to do [integer serialization](/book/integers#common-serialization-types) of map keys, values or both to [preserve space and reduce storage costs](/book/integers#serialization):
-
-```tact
-struct SerializedMapInside {
-    // Both keys and values here would be serialized as 8-bit unsigned integers,
-    // thus preserving the space and reducing storage costs:
-    countersButCompact: map<Int as uint8, Int as uint8>;
-}
-```
-
-:::note
-
-  Read about other serialization options: [Compatibility with FunC](/book/func#convert-serialization).
-
-:::
-
 ## Limits and drawbacks
 
 While maps can be convenient to work with on a small scale, they cause a number of issues if the number of items is unbounded and map can significantly grow in size:
@@ -408,3 +539,4 @@ If you still need a large map or an unbound (infinitely large) map, it's better 
 [cell]: /book/cells#cells
 
 [hashmap]: https://docs.ton.org/develop/data-formats/tl-b-types#hashmap
+[tvm]: https://docs.ton.org/learn/tvm-instructions/tvm-overview

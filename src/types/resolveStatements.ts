@@ -1,7 +1,6 @@
-import { CompilerContext } from "../context";
+import { CompilerContext } from "../context/context";
 import {
     AstCondition,
-    SrcInfo,
     AstStatement,
     tryExtractPath,
     AstId,
@@ -10,14 +9,15 @@ import {
     selfId,
     isSelfId,
     eqNames,
-} from "../grammar/ast";
+    FactoryAst,
+} from "../ast/ast";
 import { isAssignable } from "./subtyping";
 import {
     idTextErr,
     throwCompilationError,
     throwConstEvalError,
     throwInternalCompilerError,
-} from "../errors";
+} from "../error/errors";
 import {
     getAllStaticFunctions,
     getStaticConstant,
@@ -28,9 +28,11 @@ import {
 } from "./resolveDescriptors";
 import { getExpType, resolveExpression } from "./resolveExpression";
 import { FunctionDescription, printTypeRef, TypeRef } from "./types";
-import { evalConstantExpression } from "../constEval";
-import { ensureInt } from "../interpreter";
+import { evalConstantExpression } from "../optimizer/constEval";
+import { ensureInt } from "../optimizer/interpreter";
 import { crc16 } from "../utils/crc16";
+import { SrcInfo } from "../grammar";
+import { AstUtil, getAstUtil } from "../ast/util";
 
 export type StatementContext = {
     root: SrcInfo;
@@ -571,28 +573,27 @@ function processStatements(
                 break;
             case "statement_try":
                 {
-                    // Process inner statements
-                    const r = processStatements(s.statements, sctx, ctx);
-                    ctx = r.ctx;
-                    sctx = r.sctx;
-                    // try-statement might not return from the current function
-                    // because the control flow can go to the empty catch block
-                }
-                break;
-            case "statement_try_catch":
-                {
                     let initialSctx = sctx;
 
                     // Process inner statements
                     const r = processStatements(s.statements, sctx, ctx);
                     ctx = r.ctx;
 
-                    let catchCtx = sctx;
+                    // try-statement might not return from the current function
+                    // because the control flow can go to the empty catch block
+                    if (s.catchBlock === undefined) {
+                        break;
+                    }
 
+                    let catchCtx = sctx;
                     // Process catchName variable for exit code
-                    checkVariableExists(ctx, initialSctx, s.catchName);
+                    checkVariableExists(
+                        ctx,
+                        initialSctx,
+                        s.catchBlock.catchName,
+                    );
                     catchCtx = addVariable(
-                        s.catchName,
+                        s.catchBlock.catchName,
                         { kind: "ref", name: "Int", optional: false },
                         ctx,
                         initialSctx,
@@ -600,7 +601,7 @@ function processStatements(
 
                     // Process catch statements
                     const rCatch = processStatements(
-                        s.catchStatements,
+                        s.catchBlock.catchStatements,
                         catchCtx,
                         ctx,
                     );
@@ -717,6 +718,17 @@ function processStatements(
                     );
                 }
 
+                // Check variables count
+                if (
+                    !s.ignoreUnspecifiedFields &&
+                    s.identifiers.size !== ty.fields.length
+                ) {
+                    throwCompilationError(
+                        `Expected ${ty.fields.length} fields, but got ${s.identifiers.size}`,
+                        s.loc,
+                    );
+                }
+
                 // Compare type with the specified one
                 const typeRef = resolveTypeRef(ctx, s.type);
                 if (typeRef.kind !== "ref") {
@@ -746,6 +758,12 @@ function processStatements(
                     }
                 });
 
+                break;
+            }
+            case "statement_block": {
+                const r = processStatements(s.statements, sctx, ctx);
+                ctx = r.ctx;
+                returnAlwaysReachable ||= r.returnAlwaysReachable;
                 break;
             }
         }
@@ -787,7 +805,9 @@ function processFunctionBody(
     return res.ctx;
 }
 
-export function resolveStatements(ctx: CompilerContext) {
+export function resolveStatements(ctx: CompilerContext, Ast: FactoryAst) {
+    const util = getAstUtil(Ast);
+
     // Process all static functions
     for (const f of getAllStaticFunctions(ctx)) {
         if (f.ast.kind === "function_def") {
@@ -942,7 +962,7 @@ export function resolveStatements(ctx: CompilerContext) {
 
                 // Check for collisions in getter method IDs
                 if (f.isGetter) {
-                    const methodId = getMethodId(f, ctx, sctx);
+                    const methodId = getMethodId(f, ctx, sctx, util);
                     const existing = methodIds.get(methodId);
                     if (existing) {
                         throwCompilationError(
@@ -967,10 +987,45 @@ export function resolveStatements(ctx: CompilerContext) {
     return ctx;
 }
 
+function checkMethodId(methodId: bigint, loc: SrcInfo) {
+    // method ids are 19-bit signed integers
+    if (methodId < -(2n ** 18n) || methodId >= 2n ** 18n) {
+        throwConstEvalError(
+            "method ids must fit 19-bit signed integer range",
+            true,
+            loc,
+        );
+    }
+    // method ids -4, -3, -2, -1, 0 ... 2^14 - 1 (inclusive) are kind of reserved by TVM
+    // for the upper bound see F12_n (CALL) TVM instruction
+    // and many small ids will be taken by internal procedures
+    //
+    // also, some ids are taken by the getters generated by Tact:
+    // supported_interfaces -> 113617
+    // lazy_deployment_completed -> 115390
+    // get_abi_ipfs -> 121275
+    if (-4n <= methodId && methodId < 2n ** 14n) {
+        throwConstEvalError(
+            "method ids cannot overlap with the TVM reserved ids: -4, -3, -2, -1, 0 ... 2^14 - 1",
+            true,
+            loc,
+        );
+    }
+    const tactGeneratedGetterMethodIds = [113617n, 115390n, 121275n];
+    if (tactGeneratedGetterMethodIds.includes(methodId)) {
+        throwConstEvalError(
+            `method ids cannot overlap with Tact reserved method ids: ${tactGeneratedGetterMethodIds.map((n) => n.toString()).join(", ")}`,
+            true,
+            loc,
+        );
+    }
+}
+
 function getMethodId(
     funcDescr: FunctionDescription,
     ctx: CompilerContext,
     sctx: StatementContext,
+    util: AstUtil,
 ): number {
     const optMethodId = funcDescr.ast.attributes.find(
         (attr) => attr.type === "get",
@@ -987,42 +1042,13 @@ function getMethodId(
         }
 
         const methodId = ensureInt(
-            evalConstantExpression(optMethodId, ctx),
-            optMethodId.loc,
-        );
-        // method ids are 19-bit signed integers
-        if (methodId < -(2n ** 18n) || methodId >= 2n ** 18n) {
-            throwConstEvalError(
-                "method ids must fit 19-bit signed integer range",
-                true,
-                optMethodId!.loc,
-            );
-        }
-        // method ids -4, -3, -2, -1, 0 ... 2^14 - 1 (inclusive) are kind of reserved by TVM
-        // for the upper bound see F12_n (CALL) TVM instruction
-        // and many small ids will be taken by internal procedures
-        //
-        // also, some ids are taken by the getters generated by Tact:
-        // supported_interfaces -> 113617
-        // lazy_deployment_completed -> 115390
-        // get_abi_ipfs -> 121275
-        if (-4n <= methodId && methodId < 2n ** 14n) {
-            throwConstEvalError(
-                "method ids cannot overlap with the TVM reserved ids: -4, -3, -2, -1, 0 ... 2^14 - 1",
-                true,
-                optMethodId!.loc,
-            );
-        }
-        const tactGeneratedGetterMethodIds = [113617n, 115390n, 121275n];
-        if (tactGeneratedGetterMethodIds.includes(methodId)) {
-            throwConstEvalError(
-                `method ids cannot overlap with Tact reserved method ids: ${tactGeneratedGetterMethodIds.map((n) => n.toString()).join(", ")}`,
-                true,
-                optMethodId!.loc,
-            );
-        }
+            evalConstantExpression(optMethodId, ctx, util),
+        ).value;
+        checkMethodId(methodId, optMethodId.loc);
         return Number(methodId);
     } else {
-        return (crc16(funcDescr.name) & 0xffff) | 0x10000;
+        const methodId = (crc16(funcDescr.name) & 0xffff) | 0x10000;
+        checkMethodId(BigInt(methodId), funcDescr.ast.loc);
+        return methodId;
     }
 }

@@ -57,11 +57,16 @@ send(SendParameters{
 });
 ```
 
-[Необязательный флаг](/book/message-mode#optional-flags) `SendIgnoreErrors{:tact}` означает, что даже в случае ошибки при отправке сообщения, следующие сообщения все равно будут отправлены. **Ни одна ошибка на этапе отправки не приведет к откату транзакции.**.
+[Опциональный флаг](/book/message-mode#optional-flags) `SendIgnoreErrors{:tact}` означает, что если во время [отправки сообщения](#outbound-message-processing) произошла ошибка, она будет проигнорирована, а данное сообщение будет пропущено. [Коды завершения](/book/exit-codes) [фазы действий][phases], связанных с сообщением, которые могут быть вызваны без установки `SendIgnoreErrors{:tact}`:
+
+- $36$: [`Invalid destination address in outbound message`](/book/exit-codes#36)
+- $37$: [`Not enough Toncoin`](/book/exit-codes#37)
+- $39$: [`Outbound message doesn't fit into a cell`](/book/exit-codes#39)
+- $40$: [`Cannot process a message`](/book/exit-codes#40)
 
 ## Отправка типизированного сообщения
 
-Чтобы отправить двоичное типизированное сообщение, вы можете использовать следующий код:
+Для отправки сообщения, используйте следующий код:
 
 ```tact
 let recipient: Address = address("...");
@@ -98,7 +103,7 @@ send(SendParameters{
 
 Каждая транзакция в блокчейне TON состоит из [нескольких фаз][phases]. Исходящие сообщения оцениваются в [фазе вычислений][compute], но **не** отправляются в этой фазе. Вместо этого они ставятся в очередь в порядке появления для [фазы действий][phases], где выполняются все действия, перечисленные в [фазе вычислений][compute], такие как исходящие сообщения или [резервные запросы](/ref/core-advanced#nativereserve).
 
-Поскольку все значения вычисляются в [фазе вычислений][compute], все комиссии рассчитываются к его завершению, а исключения не приводят к откату транзакций в [фазе действий][phases], отправка исходящих сообщений может завершиться неудачей без возврата из-за недостаточных [action fees](https://docs.ton.org/develop/howto/fees-low-level#action-fee) или [forward fees][fwdfee].
+Поскольку все значения вычисляются в [вычислительной фазе][compute], все комиссии рассчитываются к ее концу, а исключения не отменяют транзакцию в [фазе действий][phases], отправка исходящих сообщений может завершиться неудачей без возврата из-за недостаточной [action fees](https://docs.ton.org/develop/howto/fees-low-level#action-fee) или [forward fees][fwdfee].
 
 Рассмотрим следующий пример:
 
@@ -132,9 +137,15 @@ contract FailureIsNothingButAnotherStep {
 
 - Когда обрабатывается второе сообщение, контракт пытается отправить $\mathrm{R}$ [nanoToncoins](/book/integers#nanotoncoin), но не может этого сделать, так как оставшейся суммы недостаточно.
 
-:::note
+## Ограничения отправки сообщений
 
-  Подробнее обо всех функциях отправки сообщений читайте в Справочнике:
+В общей сложности в очереди на выполнение может быть не более $255$ действий, что означает, что максимально допустимое количество сообщений, отправляемых за транзакцию - $255$.
+
+Попытки поставить в очередь больше элементов приводят к исключению с [кодом завершения 33](/book/exit-codes#33) в [фазе действий][phases]: `Action list is too long`.
+
+## Функции отправки сообщений
+
+Подробнее обо всех функциях отправки сообщений читайте в Справочнике:
 
 - [`send(){:tact}`](/ref/core-common#send)
 - [`emit(){:tact}`](/ref/core-common#emit)
@@ -142,8 +153,6 @@ contract FailureIsNothingButAnotherStep {
 - [`self.reply(){:tact}`](/ref/core-base#self-reply)
 - [`self.forward(){:tact}`](/ref/core-base#self-forward)
 - [`nativeSendMessage(){:tact}`](/ref/core-advanced#nativesendmessage)
-
-:::
 
 [p]: /book/types#primitive-types
 [int]: /book/integers

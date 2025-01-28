@@ -3,6 +3,8 @@ title: Конфигурация
 description: Поведение компилятора Tact можно настроить с помощью его файла конфигурации
 ---
 
+import { Badge } from '@astrojs/starlight/components';
+
 Поведение компилятора Tact можно настроить с помощью его файла конфигурации `tact.config.json` — файла JSON, который содержит список настроек в соответствии с конкретной [схемой](#schema).
 
 На этой странице перечислены все параметры конфигурации, как они структурированы в [схеме](#schema). Найдите оглавление справа, чтобы легко ориентироваться в них.
@@ -15,13 +17,13 @@ description: Поведение компилятора Tact можно наст�
 
 ## `$schema` {#schema}
 
-Файл [JSON-схемы](https://json-schema.org/) доступен редакторам для автоматического заполнения и подсказок при наведении: [configSchema.json](http://raw.githubusercontent.com/tact-lang/tact/main/schemas/configSchema.json).
+Файл [JSON-схемы](https://json-schema.org/) доступен редакторам для предоставления автодополнения и подсказок при наведении: [configSchema.json](http://raw.githubusercontent.com/tact-lang/tact/main/src/config/configSchema.json).
 
 Просто добавьте поле `$schema` в начало вашего файла конфигурации:
 
 ```json filename="tact.config.json" {2}
 {
-  "$schema": "http://raw.githubusercontent.com/tact-lang/tact/main/schemas/configSchema.json",
+  "$schema": "http://raw.githubusercontent.com/tact-lang/tact/main/src/config/configSchema.json",
   "projects": []
 }
 ```
@@ -149,39 +151,6 @@ description: Поведение компилятора Tact можно наст�
 
 :::
 
-#### `masterchain` {#options-masterchain}
-
-`false{:json}` по умолчанию.
-
-Если установлено значение `true{:json}`, включается поддержка [мастерчейна](/book/masterchain).
-
-```json filename="tact.config.json" {8,14}
-{
-  "projects": [
-    {
-      "name": "some_prefix",
-      "path": "./contract.tact",
-      "output": "./contract_output",
-      "options": {
-        "masterchain": true
-      }
-    },
-    {
-      "name": "ContractUnderBlueprint",
-      "options": {
-        "masterchain": true
-      }
-    }
-  ]
-}
-```
-
-:::note
-
-  Подробнее читайте на специальной странице: [Мастерчейн](/book/masterchain).
-
-:::
-
 #### `external` {#options-external}
 
 `false{:json}` по умолчанию.
@@ -281,6 +250,35 @@ description: Поведение компилятора Tact можно наст�
 
 :::
 
+#### `parser` {#options-parser}
+
+`"new"{:json}` по умолчанию.
+
+Если установлено значение `new{:json}`, Tact будет компилироваться с новым анализатором языка.
+
+Если установлено значение `old{:json}`, Tact будет компилироваться с помощью парсера старого языка.
+
+```json filename="tact.config.json" {8,14}
+{
+  "projects": [
+    {
+      "name": "some_prefix",
+      "path": "./contract.tact",
+      "output": "./contract_output",
+      "options": {
+        "debug": true
+      }
+    },
+    {
+      "name": "ContractUnderBlueprint",
+      "options": {
+        "debug": true
+      }
+    }
+  ]
+}
+```
+
 #### `experimental` {#options-experimental}
 
 Экспериментальные параметры, которые могут быть удалены в будущем. Используйте с осторожностью!
@@ -337,6 +335,27 @@ description: Поведение компилятора Tact можно наст�
 }
 ```
 
+### `verbose` {#verbose}
+
+<Badge text="Доступно с версии Tact 1.6" variant="tip" size="medium"/><p/>
+
+`1{:json}` по умолчанию.
+
+Устанавливает уровень детализации. Более высокие значения обеспечивают больший выход.
+
+```json filename="tact.config.json" {7}
+{
+  "projects": [
+    {
+      "name": "func_only",
+      "path": "./contract.tact",
+      "output": "./contract_output",
+      "verbose": 2
+    }
+  ]
+}
+```
+
 ### `mode` {#projects-mode}
 
 Режим компиляции проекта. Возможные значения::
@@ -373,7 +392,7 @@ description: Поведение компилятора Tact можно наст�
 
 ```json filename="tact.config.json" copy=false
 {
-  "$schema": "http://raw.githubusercontent.com/tact-lang/tact/main/schemas/configSchema.json",
+  "$schema": "http://raw.githubusercontent.com/tact-lang/tact/main/src/config/configSchema.json",
   "projects": [
     {
       "name": "basic",
@@ -399,7 +418,6 @@ description: Поведение компилятора Tact можно наст�
       "name": "ContractUnderBlueprint",
       "options": {
         "debug": false,
-        "masterchain": false,
         "external": false,
         "ipfsAbiGetter": true,
         "interfacesGetter": true,

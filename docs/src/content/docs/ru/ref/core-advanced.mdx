@@ -434,6 +434,8 @@ fun nativeSendMessage(cell: Cell, mode: Int);
 
 [Помещает сообщение](/book/send#outbound-message-processing) в очередь для отправки, указав полную `cell` и [`mode` сообщения](/book/message-mode).
 
+Попытки поставить в очередь сообщения стоимостью более $255$ приводят к возникновению исключения с [кодом выхода 33](/book/exit-codes#33): `Список действий слишком длинный`.
+
 :::note
 
   Предпочитайте использовать гораздо более распространенную и удобную функцию [`send(){:tact}`](/ref/core-common#send), если только у вас нет сложной логики, которую нельзя выразить иным образом.
@@ -466,6 +468,8 @@ raw_reserve(int amount, int mode) impure asm "RAWRESERVE";
 :::caution
 
   В настоящее время `amount` должно быть неотрицательным целым числом, а `mode` должно быть в диапазоне $0..31$ включительно.
+
+  Кроме того, попытки поставить в очередь бронирования на сумму более $255$ за одну транзакцию вызывают исключение с [кодом выхода 33](/book/exit-codes#33): `Список действий слишком длинный`.
 
 :::
 
@@ -582,7 +586,7 @@ parsedVarAddr.address.loadUint(123); // 345
 [int]: /book/integers
 [кусочек]: /book/cells#slices
 [с]: /book/structs-and-messages#structs
-[шедевр]: /book/masterchain
+[шедевр]: https://docs.ton.org/v3/documentation/smart-contracts/shards/shards-intro#masterchain
 [хеш ячейки]: /ref/core-cell#cellhash
 [nanotoncoin]: /book/integers#nanotoncoin
 [tvm]: https://docs.ton.org/learn/tvm-instructions/tvm-overview

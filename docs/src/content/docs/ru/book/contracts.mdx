@@ -33,7 +33,7 @@ contract Example {
 - [Функции приемника](#receiver-functions)
 - [Внутренние функции](#internal-functions)
 
-### Унаследованные признаки, `с{:tact}` {#traits}
+### Унаследованные типажи, `with` {#traits}
 
 Контракты могут наследовать все объявления и определения из [признаков][trait] и переопределять некоторые из их поведений по умолчанию. В дополнение к этому, каждый контракт и признак неявно наследуют специальный [`BaseTrait{:tact}` признак](/ref/core-base).
 
@@ -95,7 +95,6 @@ Tact имеет небольшой набор интерфейсов, предо
 - `"org.ton.abi.ipfs.v0"{:tact}`, в соответствии с [OTP-003: Самостоятельный отчет ABI](/ref/evolution/otp-003) — подпишитесь через свойство конфигурации [`ipfsAbiGetter`](/book/config#options-ipfsabigetter)
 - `"org.ton.deploy.lazy.v0"{:tact}`, в соответствии с [OTP-005: Контракты, адресуемые аргументами](/ref/evolution/otp-005)
 - `"org.ton.debug.v0"{:tact}`, но только если [режим отладки](/book/debug#debug-mode) включен
-- `org.ton.chain.any.v0"{:tact}`, если включена поддержка [мастерчейна](/book/masterchain), и `org.ton.chain.workchain.v0`{:tact}\` в противном случае
 
 Некоторые [признаки][trait] в [стандартных библиотеках](/ref/standard-libraries) также определяют свои интерфейсы:
 

@@ -1,0 +1,682 @@
+---
+title: STON.fi
+description: На этой странице представлены примеры работы со STON.fi, децентрализованным автоматизированным маркет-мейкером, построенным на блокчейне TON
+sidebar:
+  order: 2
+---
+
+[STON.fi](https://ston.fi) - это децентрализованный автоматизированный маркет-мейкер (AMM), построенный на [блокчейне TON](https://ton.org), обеспечивающий практически нулевые комиссии, низкое проскальзывание, чрезвычайно простой интерфейс и прямую интеграцию с кошельками TON.
+
+:::caution
+
+  В примерах на этой странице используется API v2 STON.fi, который в настоящее время находится в разработке. Поэтому, все адреса указаны в формате [тестовой сети][testnet].
+
+  Будьте осторожны и внимательны — не пытайтесь отправлять средства из основной сети в тестовую сеть и наоборот.
+
+:::
+
+Прежде чем продолжить, ознакомьтесь со следующими материалами:
+
+- [Получение сообщений](/book/receive/)
+- [Отправка сообщений](/book/send/)
+- [Взаимозаменяемые токены (Jettons)](/cookbook/jettons/)
+- [Документация STON.fi: Глоссарий](https://docs.ston.fi/docs/user-section/glossary)
+- [Документация STON.fi: Архитектура](https://docs.ston.fi/docs/developer-section/architecture)
+
+## Свопы
+
+Подробнее о свопах читайте в [документации STON.fi](https://docs.ston.fi/docs/developer-section/api-reference-v2/example_swap).
+
+Свопы используют `StonfiSwap{:tact}` [Message][message] и `SwapAdditionalData{:tact}` [Struct][struct]:
+
+```tact
+/// https://docs.ston.fi/docs/developer-section/api-reference-v2/router#swap-0x6664de2a
+message(0x6664de2a) StonfiSwap {
+    // Адрес другого кошелька токенов Router
+    otherTokenWallet: Address;
+
+    // Куда отправлять возвраты при неудачном свопе
+    refundAddress: Address;
+
+    // Куда отправлять излишки при успешном свопе
+    excessesAddress: Address;
+
+    // UNIX-временная метка крайнего срока выполнения свопа
+    deadline: Int as uint64;
+
+    // Ссылка на другой Cell с дополнительными данными,
+    // использующий жадный механизм автоматической компановки Tact
+    additionalData: SwapAdditionalData;
+}
+
+/// https://docs.ston.fi/docs/developer-section/api-reference-v2/router#additional_data-body
+struct SwapAdditionalData {
+    // Минимальное необходимое количество токенов для получения
+    //  По умолчанию равно 1, что приводит к сбою свопа
+    //                только если токены не были получены
+    minOut: Int as coins = 1;
+
+    // Куда отправлять токены при успешном свопе
+    receiverAddress: Address;
+
+    // Forward fees для `customPayload` если это не `null`
+    // По умолчанию 0
+    fwdGas: Int as coins = 0;
+
+    // Пользовательский payload который будет отправлен при успешном свопе
+    // По умолчанию `null`, что означает отсутствие payload
+    customPayload: Cell? = null;
+
+    // Forward fees для `refundPayload` если это не `null`
+    // По умолчанию 0
+    refundFwdGas: Int as coins = 0;
+
+    // Пользовательский payload который будет отправлен при неудачном свопе
+    // По умолчанию `null`, что означает отсутствие payload
+    refundPayload: Cell? = null;
+
+    // Реферальная комиссия от 0 (без комиссии) до 100 (1%)
+    // По умолчанию равна 10, что означает комиссию 0,1%
+    refFee: Int as uint16 = 10;
+
+    // Реферальный адрес
+    // По умолчанию `null`
+    referralAddress: Address? = null;
+}
+```
+
+[STON.fi SDK](https://github.com/ston-fi/sdk) определяет некоторые [константы для работы с комиссиями](https://github.com/ston-fi/sdk/blob/786ece758794bd5c575db8b38f5e5de19f43f0d1/packages/sdk/src/contracts/dex/v2_1/router/BaseRouterV2_1.ts). Обратите внимание, что это жёсткие значения, но лучше [рассчитывать комиссии динамически с использованием текущих параметров конфигурации](https://docs.ton.org/v3/guidelines/smart-contracts/fee-calculation).
+
+```tact
+/// Жестко заданная сумма комиссии за отправку сообщения на кошелек Jetton
+const FeeSwapJettonToJetton: Int = ton("0.3");
+/// Жестко заданная сумма комиссии для оплаты forward fees с кошелька Jetton
+const FeeSwapJettonToJettonFwd: Int = ton("0.24");
+
+/// Жестко заданная сумма комиссии за отправку сообщения на кошелек Jetton
+const FeeSwapJettonToToncoin: Int = ton("0.3");
+/// Жестко заданная сумма комиссии за отправку сообщения на кошелек Jetton
+const FeeSwapJettonToToncoinFwd: Int = ton("0.24");
+
+/// Жестко заданная сумма комиссии за отправку сообщения и последующую переадресацию
+const FeeSwapToncoinToJetton: Int = ton("0.01") + ton("0.3");
+```
+
+:::note[Useful [Полезные ссылки:]
+
+  [Расчёт комиссий в документации TON][fees-calc]
+
+:::
+
+### Jetton на Jetton {#swaps-jetton-to-jetton}
+
+:::caution
+
+  В следующем примере используется API v2 STON.fi, который находится в разработке. Поэтому все адреса указываются в формате [тестовой сети][testnet].
+
+  Кроме того, некоторые переменные, такие как `offerAmount` жёстко заданы для демонстрации. Не забудьте изменить их в реальных сценариях.
+
+:::
+
+```tact
+// CPI Router v2.1.0
+const RouterAddress: Address =
+    address("kQALh-JBBIKK7gr0o4AVf9JZnEsFndqO0qTCyT-D-yBsWk0v");
+
+// Адрес Router Jetton-кошелька
+const RouterJettonWallet: Address =
+    address("kQAtX3x2s-wMtYTz8CfmAyloHAB73vONzJM5S2idqXl-_5xK");
+
+/// ПРИМЕЧАНИЕ: Для расчета и предоставления адреса Jetton-кошелька для целевого пользователя
+///       обязательно проверьте ссылки после этого фрагмента кода
+fun jettonToJetton(myJettonWalletAddress: Address) {
+    // Количество Jettons для свопа
+    let offerAmount: Int = 100_000;
+
+    // Подготовьте payload
+    let forwardPayload = StonfiSwap{
+        otherTokenWallet: RouterJettonWallet,
+        refundAddress: myAddress(),
+        excessesAddress: myAddress(),
+        // Крайний срок установлен через 10 000 секунд от текущего момента
+        deadline: now() + 10_000,
+        additionalData: SwapAdditionalData{ receiverAddress: myAddress() },
+    };
+
+    // Начните своп с отправки сообщения в кошелек Jetton
+    send(SendParameters{
+        to: myJettonWalletAddress,
+        value: FeeSwapJettonToJetton,
+        body: JettonTransfer{
+            queryId: 42,
+            amount: offerAmount,
+            destination: RouterAddress,
+            responseDestination: myAddress(),
+            forwardTonAmount: FeeSwapJettonToJettonFwd,
+            forwardPayload: forwardPayload.toCell(),
+        }.toCell(),
+    });
+}
+
+//
+// Вспомогательные Messages, Structs и constants описаны ранее на этой странице
+//
+
+message(0x6664de2a) StonfiSwap {
+    otherTokenWallet: Address;
+    refundAddress: Address;
+    excessesAddress: Address;
+    deadline: Int as uint64;
+    additionalData: SwapAdditionalData;
+}
+
+struct SwapAdditionalData {
+    minOut: Int as coins = 1;
+    receiverAddress: Address;
+    fwdGas: Int as coins = 0;
+    customPayload: Cell? = null;
+    refundFwdGas: Int as coins = 0;
+    refundPayload: Cell? = null;
+    refFee: Int as uint16 = 10;
+    referralAddress: Address? = null;
+}
+
+const FeeSwapJettonToJetton: Int = ton("0.3");
+const FeeSwapJettonToJettonFwd: Int = ton("0.24");
+
+//
+// Сообщения из стандарта Jetton
+//
+
+message(0xf8a7ea5) JettonTransfer {
+    queryId: Int as uint64;
+    amount: Int as coins;
+    destination: Address;
+    responseDestination: Address?;
+    customPayload: Cell? = null;
+    forwardTonAmount: Int as coins;
+    forwardPayload: Cell?; // slightly adjusted
+}
+```
+
+:::note[Useful [Полезные ссылки:]
+
+  [Получение адреса кошелька Jetton в документах TON]\
+  [Как вычислить адрес кошелька Jetton пользователя (offline)?][jetton-addr-offline]\
+  [Доступные для обнаружения кошельки Jetton][discoverable-jetton-wallets]\
+  [Расчет комиссии в документах TON][fees-calc]
+
+:::
+
+### Jetton на Toncoin {#swaps-jetton-to-toncoin}
+
+Своп Jetton на Toncoin очень похож на [своп Jetton на Jetton](#swaps-jetton-to-jetton) с той лишь разницей, что адрес `RouterJettonWallet{:tact}` заменяется на `RouterProxyTonWallet{:tact}`.
+
+:::caution
+
+  В следующем примере используется API v2 STON.fi, который находится в разработке. Поэтому все адреса указаны в формате [тестовой сети][testnet].
+
+  Кроме того, некоторые переменные, такие как `offerAmount` жёстко заданы для демонстрации. Не забудьте изменить их в реальных сценариях.
+
+:::
+
+```tact
+// CPI Router v2.1.0
+const RouterAddress: Address =
+    address("kQALh-JBBIKK7gr0o4AVf9JZnEsFndqO0qTCyT-D-yBsWk0v");
+
+// Адрес Router's pTON
+const RouterProxyTonWallet: Address =
+    address("kQBbJjnahBMGbMUJwhAXLn8BiigcGXMJhSC0l7DBhdYABhG7");
+
+/// ПРИМЕЧАНИЕ: Для расчета и предоставления адреса Jetton-кошелька для целевого пользователя,
+///       обязательно проверьте ссылки после этого фрагмента кода
+fun jettonToToncoin(myJettonWalletAddress: Address) {
+    // Количество Jettons для свопа
+    let offerAmount: Int = 100_000;
+
+    // Подготовка payload
+    let forwardPayload = StonfiSwap{
+        otherTokenWallet: RouterProxyTonWallet,
+        refundAddress: myAddress(),
+        excessesAddress: myAddress(),
+        // Крайний срок установлен через 10 000 секунд от текущего момента
+        deadline: now() + 10_000,
+        additionalData: SwapAdditionalData{ receiverAddress: myAddress() },
+    };
+
+    // Начните своп с отправки сообщения в Jetton-кошелек
+    send(SendParameters{
+        to: myJettonWalletAddress,
+        value: FeeSwapJettonToToncoin,
+        body: JettonTransfer{
+            queryId: 42,
+            amount: offerAmount,
+            destination: RouterAddress,
+            responseDestination: myAddress(),
+            forwardTonAmount: FeeSwapJettonToToncoinFwd,
+            forwardPayload: forwardPayload.toCell(),
+        }.toCell(),
+    });
+}
+
+//
+// Вспомогательные Messages, Structs и constants описаны ранее на этой странице
+//
+
+message(0x6664de2a) StonfiSwap {
+    otherTokenWallet: Address;
+    refundAddress: Address;
+    excessesAddress: Address;
+    deadline: Int as uint64;
+    additionalData: SwapAdditionalData;
+}
+
+struct SwapAdditionalData {
+    minOut: Int as coins = 1;
+    receiverAddress: Address;
+    fwdGas: Int as coins = 0;
+    customPayload: Cell? = null;
+    refundFwdGas: Int as coins = 0;
+    refundPayload: Cell? = null;
+    refFee: Int as uint16 = 10;
+    referralAddress: Address? = null;
+}
+
+const FeeSwapJettonToToncoin: Int = ton("0.3");
+const FeeSwapJettonToToncoinFwd: Int = ton("0.24");
+
+//
+// Сообщения из стандарта Jetton
+//
+
+message(0xf8a7ea5) JettonTransfer {
+    queryId: Int as uint64;
+    amount: Int as coins;
+    destination: Address;
+    responseDestination: Address?;
+    customPayload: Cell? = null;
+    forwardTonAmount: Int as coins;
+    forwardPayload: Cell?; // slightly adjusted
+}
+```
+
+:::note[Useful [Полезные ссылки:]
+
+  [Получение адреса кошелька Jetton в документации TON][jetton-addr-online]\
+  Как рассчитать адрес Jetton-кошелька пользователя (offline)?][jetton-addr-offline]\
+  [Доступные для обнаружения кошельки Jetton][discoverable-jetton-wallets]\
+  [Расчет комиссий в документации TON][fees-calc]
+
+:::
+
+### Toncoin на Jetton {#swaps-jetton-to-toncoin}
+
+Для свопа Toncoin на Jetton, STON.fi требует использования так называемого прокси-кошелька Toncoin (или сокращенно pTON). Чтобы корректно с ним взаимодействовать, необходимо использовать [сообщение][message] `ProxyToncoinTransfer{:tact}`:
+
+```tact
+/// https://github.com/ston-fi/sdk/blob/786ece758794bd5c575db8b38f5e5de19f43f0d1/packages/sdk/src/contracts/pTON/v2_1/PtonV2_1.ts
+message(0x01f3835d) ProxyToncoinTransfer {
+    // Уникальный идентификатор, используемый для отслеживания транзакций по нескольким контрактам
+    // По умолчанию значение равно 0, что означает отсутствие пометки сообщений для отслеживания их цепочек
+    queryId: Int as uint64 = 0;
+
+    // Сумма Toncoin для свопа
+    tonAmount: Int as coins;
+
+    // Адрес для возврата средств в случае неудачного свопа
+    refundAddress: Address;
+
+    // Необязательный custom payload для прикрепления к свопу
+    // По умолчанию `null`
+    forwardPayload: Cell?;
+}
+```
+
+Обратите внимание, что `ProxyToncoinTransfer{:tact}` очень похож на `JettonTransfer{:tact}`, за исключением того, что он не требует никаких адресов, кроме адреса возврата и не требует указания каких-либо пересылаемых сумм.
+
+:::caution
+
+  В следующем примере используется API v2 STON.fi, который находится в разработке. Поэтому все адреса указаны в формате [тестовой сети][testnet].
+
+  Кроме того, некоторые переменные, такие как `offerAmount` жестко заданы для демонстрации. Не забудьте изменить их в реальных сценариях.
+
+:::
+
+```tact
+// Адрес кошелька Router's pTON
+const RouterProxyTonWallet: Address
+    = address("kQBbJjnahBMGbMUJwhAXLn8BiigcGXMJhSC0l7DBhdYABhG7");
+
+// Адрес кошелька Router's Jetton
+const RouterJettonWallet: Address =
+    address("kQAtX3x2s-wMtYTz8CfmAyloHAB73vONzJM5S2idqXl-_5xK");
+
+fun toncoinToJetton() {
+    // Сумма для свопа Toncoin
+    let offerAmount: Int = 1_000;
+
+    // Подготовьте payload
+    let forwardPayload = StonfiSwap{
+        otherTokenWallet: RouterJettonWallet,
+        refundAddress: myAddress(),
+        excessesAddress: myAddress(),
+        // Крайний срок установлен на 10 000 секунд, начиная с этого момента
+        deadline: now() + 10_000,
+        additionalData: SwapAdditionalData{ receiverAddress: myAddress() },
+    };
+
+    // Начните обмен с отправки сообщения в proxy Toncoin кошелек
+    send(SendParameters{
+        to: RouterProxyTonWallet,
+        value: FeeSwapToncoinToJetton + offerAmount,
+        body: ProxyToncoinTransfer{
+            tonAmount: offerAmount,
+            refundAddress: myAddress(),
+            forwardPayload: forwardPayload.toCell(),
+        }.toCell(),
+    });
+}
+
+//
+// Вспомогательные Messages, Structs и constants описаны ранее на этой странице
+//
+
+message(0x01f3835d) ProxyToncoinTransfer {
+    queryId: Int as uint64 = 0;
+    tonAmount: Int as coins;
+    refundAddress: Address;
+    forwardPayload: Cell?;
+}
+
+message(0x6664de2a) StonfiSwap {
+    otherTokenWallet: Address;
+    refundAddress: Address;
+    excessesAddress: Address;
+    deadline: Int as uint64;
+    additionalData: SwapAdditionalData;
+}
+
+struct SwapAdditionalData {
+    minOut: Int as coins = 1;
+    receiverAddress: Address;
+    fwdGas: Int as coins = 0;
+    customPayload: Cell? = null;
+    refundFwdGas: Int as coins = 0;
+    refundPayload: Cell? = null;
+    refFee: Int as uint16 = 10;
+    referralAddress: Address? = null;
+}
+
+const FeeSwapToncoinToJetton: Int = ton("0.3");
+```
+
+:::note[Useful [Полезные ссылки:]
+
+  [Расчёт комиссии в документации TON][fees-calc]
+
+:::
+
+## Обеспечение ликвидности
+
+Подробнее об обеспечении ликвидности читайте в [документации STON.fi](https://docs.ston.fi/docs/developer-section/api-reference-v2/example_lp_provide).
+
+STON.fi позволяет вносить ликвидность, указывая только один тип токена - пул автоматически выполнит своп и выпустит токены поставщика ликвидности (LP). Для этого необходимо установить `bothPositive` в поле `ProvideLiquidity{:tact}` [Message][message] на `false{:tact}`.
+
+Депозиты ликвидности используют `ProvideLiquidity{:tact}` [Message][message] и `ProvideLiqudityAdditionalData{:tact}` [Struct][struct]:
+
+```tact
+/// https://docs.ston.fi/docs/developer-section/api-reference-v2/router#provide_lp-0x37c096df
+message(0x37c096df) ProvideLiquidity {
+    // Адрес другого токен-кошелька Router
+    otherTokenWallet: Address;
+
+    // Адрес для возврата средств, если внесение ликвидности не удалось
+    refundAddress: Address;
+
+    // Адрес для отправки излишков в случае успешного внесения ликвидности
+    excessesAddress: Address;
+
+    // Временная метка UNIX, указывающая крайний срок выполнения операции
+    deadline: Int as uint64;
+
+    // Ссылка на другой Cell с дополнительными данными,
+    // использующий механизм жадной авторазметки Tact
+    additionalData: ProvideLiquidityAdditionalData;
+}
+
+/// https://docs.ston.fi/docs/developer-section/api-reference-v2/router#additional_data-body-1
+struct ProvideLiquidityAdditionalData {
+    // Минимально необходимое количество LP токенов для получения 
+    // По умолчанию равно 1, что приведет к ошибке внесения
+    //                только если токены не были получены
+    minLpOut: Int as coins = 1;
+
+    // Адрес для отправки LP токенов в случае успешного внесения
+    receiverAddress: Address;
+
+    // Должны ли оба токена в паре иметь положительное количество?
+    // Если нет, пул выполнит дополнительный своп недостающего токена
+    // По умолчанию `true`, что означает, что внесение пройдет
+    //                     только если количество обоих токенов не равно нулю
+    bothPositive: Bool = true;
+
+    // Forward fees для `customPayload` если это не `null`
+    // По умолчанию 0
+    fwdGas: Int as coins = 0;
+
+    // Custom payload который будет отправлен в случае успешного внесения
+    // По умолчанию `null`, что означает no payload
+    customPayload: Cell? = null;
+}
+```
+
+[SDK STON.fi](https://github.com/ston-fi/sdk) определяет некоторые [константы для работы с комиссиями](https://github.com/ston-fi/sdk/blob/786ece758794bd5c575db8b38f5e5de19f43f0d1/packages/sdk/src/contracts/dex/v2_1/router/BaseRouterV2_1.ts). Обратите внимание, что это жёстко заданные значения, но лучше [рассчитывать комиссии динамически, используя текущие параметры конфигурации](https://docs.ton.org/v3/guidelines/smart-contracts/fee-calculation).
+
+```tact
+/// Жестко заданное значение комиссии для отправки сообщения о предоставлении ликвидности 
+/// при внесении определенного количества Jettons
+const FeeSingleSideProvideLpJetton: Int = ton("1");
+
+/// Жестко заданное значение для оплаты forward fees последующих сообщений при предоставлении ликвидности
+const FeeSingleSideProvideLpJettonFwd: Int = ton("0.8");
+
+/// Жестко заданное значение комиссии для отправки сообщения о предоставлении ликвидности
+/// при внесении определенного количества Toncoins
+const FeeSingleSideProvideLpToncoin: Int = ton("0.01") + ton("0.8");
+```
+
+:::note[Useful [Полезные ссылки:]
+
+  [Расчёт комиссии в документации TON][fees-calc]
+
+:::
+
+### Внесение Jetton
+
+:::caution
+
+  В следующем примере используется API v2 STON.fi, который находится в разработке. Поэтому все адреса указываются в формате [тестовой сети][testnet].
+
+  Кроме того, некоторые переменные, такие как `offerAmount` жёстко заданы для демонстрации. Не забудьте изменить их в реальных сценариях.
+
+:::
+
+```tact
+// CPI Router v2.1.0
+const RouterAddress: Address =
+    address("kQALh-JBBIKK7gr0o4AVf9JZnEsFndqO0qTCyT-D-yBsWk0v");
+
+// Адрес кошелька Router's pTON
+const RouterProxyTonWallet: Address =
+    address("kQBbJjnahBMGbMUJwhAXLn8BiigcGXMJhSC0l7DBhdYABhG7");
+
+// Адрес кошелька Router's Jetton
+const RouterJettonWallet: Address =
+    address("kQAtX3x2s-wMtYTz8CfmAyloHAB73vONzJM5S2idqXl-_5xK"); 
+
+/// ПРИМЕЧАНИЕ: Для рассчета и предоставления адреса кошелька Jetton целевому пользователю,
+///       обязательно проверьте ссылки после этого фрагмента кода
+fun jettonDeposit(myJettonWalletAddress: Address) {
+    // Количество Jettons для предоставления ликвидности
+    let offerAmount = 100_000;
+
+    // Подготовка payload
+    let forwardPayload = ProvideLiquidity{
+        otherTokenWallet: RouterProxyTonWallet,
+        refundAddress: myAddress(),
+        excessesAddress: myAddress(),
+        // Крайний срок установлен на 1000 секунд, начиная с этого момента
+        deadline: now() + 1_000,
+        additionalData: ProvideLiquidityAdditionalData{
+            receiverAddress: myAddress(),
+            bothPositive: false, // i.e. single side
+        },
+    };
+
+    send(SendParameters{
+        to: myJettonWalletAddress,
+        value: FeeSingleSideProvideLpJetton,
+        body: JettonTransfer{
+            queryId: 42,
+            amount: offerAmount,
+            destination: RouterAddress,
+            responseDestination: myAddress(),
+            forwardTonAmount: FeeSingleSideProvideLpJettonFwd,
+            forwardPayload: forwardPayload.toCell(),
+        }.toCell(),
+    });
+}
+
+//
+// Вспомогательные Messages, Structs и constants описанны ранее на этой странице
+//
+
+message(0x37c096df) ProvideLiquidity {
+    otherTokenWallet: Address;
+    refundAddress: Address;
+    excessesAddress: Address;
+    deadline: Int as uint64;
+    additionalData: ProvideLiquidityAdditionalData;
+}
+
+struct ProvideLiquidityAdditionalData {
+    minLpOut: Int as coins = 1;
+    receiverAddress: Address;
+    bothPositive: Bool = true;
+    fwdGas: Int as coins = 0;
+    customPayload: Cell? = null;
+}
+
+const FeeSingleSideProvideLpJetton: Int = ton("1");
+const FeeSingleSideProvideLpJettonFwd: Int = ton("0.8");
+
+//
+// Сообщения из стандарта Jetton
+//
+
+message(0xf8a7ea5) JettonTransfer {
+    queryId: Int as uint64;
+    amount: Int as coins;
+    destination: Address;
+    responseDestination: Address?;
+    customPayload: Cell? = null;
+    forwardTonAmount: Int as coins;
+    forwardPayload: Cell?; // slightly adjusted
+}
+```
+
+### Внесение Toncoin
+
+:::caution
+
+  В следующем примере используется API v2 STON.fi, который находится в разработке. Поэтому все адреса указываются в формате [тестовой сети][testnet].
+
+  Кроме того, некоторые переменные, такие как `offerAmount` жёстко заданы для демонстрации. Не забудьте изменить их в реальных сценариях.
+
+:::
+
+```tact
+// Адрес кошелька Router's pTON
+const RouterProxyTonWallet: Address =
+    address("kQBbJjnahBMGbMUJwhAXLn8BiigcGXMJhSC0l7DBhdYABhG7");
+
+// Адрес кошелька Router's Jetton
+const RouterJettonWallet: Address =
+    address("kQAtX3x2s-wMtYTz8CfmAyloHAB73vONzJM5S2idqXl-_5xK");
+
+fun toncoinDeposit() {
+    // Количество Jettons для предоставления ликвидности
+    let offerAmount = 100_000;
+
+    // Подготовка payload
+    let forwardPayload = ProvideLiquidity{
+        otherTokenWallet: RouterJettonWallet,
+        refundAddress: myAddress(),
+        excessesAddress: myAddress(),
+        deadline: now() + 1000,
+        additionalData: ProvideLiquidityAdditionalData{
+            receiverAddress: myAddress(),
+            bothPositive: false, // i.e. single side
+        },
+    };
+
+    send(SendParameters{
+        to: RouterProxyTonWallet,
+        value: FeeSingleSideProvideLpToncoin + offerAmount,
+        body: ProxyToncoinTransfer{
+            queryId: 42,
+            tonAmount: offerAmount,
+            refundAddress: myAddress(),
+            forwardPayload: forwardPayload.toCell(),
+        }.toCell(),
+    });
+}
+
+//
+// Вспомогательные Messages, Structs и constants указаны ранее на этой странице
+//
+
+message(0x01f3835d) ProxyToncoinTransfer {
+    queryId: Int as uint64 = 0;
+    tonAmount: Int as coins;
+    refundAddress: Address;
+    forwardPayload: Cell?;
+}
+
+message(0x37c096df) ProvideLiquidity {
+    otherTokenWallet: Address;
+    refundAddress: Address;
+    excessesAddress: Address;
+    deadline: Int as uint64;
+    additionalData: ProvideLiquidityAdditionalData;
+}
+
+struct ProvideLiquidityAdditionalData {
+    minLpOut: Int as coins = 1;
+    receiverAddress: Address;
+    bothPositive: Bool = true;
+    fwdGas: Int as coins = 0;
+    customPayload: Cell? = null;
+}
+
+const FeeSingleSideProvideLpToncoin: Int = ton("0.01") + ton("0.8");
+```
+
+### Вывод ликвидности
+
+Для вывода ликвидности требуется сжигание LP токенов. Вы можете ознакомиться с примерами сжигания Jetton в соответствующем [разделе страницы Jettons Cookbook](/cookbook/jettons#burning-jetton). Однако для сжигания потребуется добавить больше Toncoin, чем обычно, так как недостаточное количество может привести к сжиганию LP токенов без полного (или частичного) возврата ликвидности из пула. Поэтому рекомендуется добавлять минимум $0.5$ Toncoin - излишек будет возвращен.
+
+:::tip[Hey [Обратите внимание!]
+
+Не нашли подходящий пример взаимодействия со STON.fi? Есть интересные реализации? [Мы будем рады вашим предложениям!](https://github.com/tact-lang/tact/issues)
+
+:::
+
+[struct]: /book/structs-and-messages#structs
+[message]: /book/structs-and-messages#messages
+[testnet]: https://docs.ton.org/v3/documentation/smart-contracts/getting-started/testnet
+[jetton-addr-online]: https://docs.ton.org/develop/dapps/asset-processing/jettons#retrieving-jetton-wallet-addresses-for-a-given-user
+[jetton-addr-offline]: https://docs.ton.org/v3/guidelines/dapps/cookbook#how-to-calculate-users-jetton-wallet-address-offline
+[discoverable-jetton-wallets]: https://github.com/ton-blockchain/TEPs/blob/master/text/0089-jetton-wallet-discovery.md
+[fees-calc]: https://docs.ton.org/v3/guidelines/smart-contracts/fee-calculation

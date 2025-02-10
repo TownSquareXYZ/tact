@@ -6,7 +6,7 @@ prev:
   label: "OTP-006: Пакет контрактов"
 ---
 
-Каждый [контракт](/book/contracts) и [типаж](/book/types#traits) в Tact неявно [наследует](/book/contracts#traits) типаж `BaseTrait{:tact}`, который содержит ряд наиболее полезных [внутренних функций](/book/contracts#internal-functions) для любого типа контракта, а также константу `self.storageReserve{:tact}`, предназначенную для продвинутых пользователей Tact.
+Каждый [контракт](/ru/book/contracts) и [типаж](/ru/book/types#traits) в Tact неявно [наследует](/ru/book/contracts#traits) типаж `BaseTrait{:tact}`, который содержит ряд наиболее полезных [внутренних функций](/ru/book/contracts#internal-functions) для любого типа контракта, а также константу `self.storageReserve{:tact}`, предназначенную для продвинутых пользователей Tact.
 
 ## Константы
 
@@ -83,7 +83,7 @@ self.notify("Beware, this is my reply to you!".asComment());
 virtual fun forward(to: Address, body: Cell?, bounce: Bool, init: StateInit?);
 ```
 
-[Помещает сообщение](/book/send#outbound-message-processing) (с возможностью возврата или без возможности возврата) в очередь на отправку по указанному адресу `to`. При желании вы можете указать `тело` сообщения и пакет [`init`](/book/expressions#initof).
+[Помещает сообщение](/ru/book/send#outbound-message-processing) (с возможностью возврата или без возможности возврата) в очередь на отправку по указанному адресу `to`. При желании вы можете указать `тело` сообщения и пакет [`init`](/ru/book/expressions#initof).
 
 Когда константа [`self.storageReserve{:tact}`](#self-storagereserve) перезаписывается на $> 0$, перед отправкой сообщения она также пытается зарезервировать сумму `self.storageReserve{:tact}` в [nanoToncoin][nano] из оставшегося баланса перед отправкой в ​​режиме [`SendRemainingBalance{:tact}`](https://docs.tact-lang.org/book/message-mode#base-modes) ($128$).
 
@@ -92,7 +92,7 @@ virtual fun forward(to: Address, body: Cell?, bounce: Bool, init: StateInit?);
 :::note
 
   Обратите внимание, что `self.forward(){:tact}` никогда не отправляет дополнительные [nanoToncoin][nano] сверх того, что доступно на балансе.\
-Чтобы иметь возможность отправить больше [nanoToncoin][nano] одним сообщением, используйте функцию [`send(){:tact}`](/ref/core-common#send).
+Чтобы иметь возможность отправить больше [nanoToncoin][nano] одним сообщением, используйте функцию [`send(){:tact}`](/ru/ref/core-common#send).
 
 :::
 
@@ -128,4 +128,4 @@ contract Payout with Ownable {
 }
 ```
 
-[nano]: /book/integers#nanotoncoin
+[nano]: /ru/book/integers#nanotoncoin

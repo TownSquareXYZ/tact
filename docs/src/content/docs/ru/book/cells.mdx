@@ -13,7 +13,7 @@ description: Ячейки, конструкторы и срезы - это ни�
 
 ### Виды {#cells-kinds}
 
-Хотя тип [TVM][tvm] [`Cell{:tact}`](#cells) относится ко всем ячейкам, существуют разные виды ячеек с различными схемами памяти. Описанная [ранее](#cells) называется _обычной_ (или простой) ячейкой — это самая простая и наиболее часто используемая разновидность ячеек, которая может содержать только данные. Большинство описаний, руководств и [ссылок](/ref/core-cells) на ячейки и их использование предполагают обычные ячейки.
+Хотя тип [TVM][tvm] [`Cell{:tact}`](#cells) относится ко всем ячейкам, существуют разные виды ячеек с различными схемами памяти. Описанная [ранее](#cells) называется _обычной_ (или простой) ячейкой — это самая простая и наиболее часто используемая разновидность ячеек, которая может содержать только данные. Большинство описаний, руководств и [ссылок](/ru/ref/core-cells) на ячейки и их использование предполагают обычные ячейки.
 
 Другие виды ячеек в совокупности называются _экзотическими_ (или специальными) ячейками. Иногда они появляются в реальных представлениях блоков и других структур данных в блокчейне TON. Их схемы памяти и цели значительно отличаются от обычных ячеек.
 
@@ -66,7 +66,7 @@ description: Ячейки, конструкторы и срезы - это ни�
 
 Наконец, для каждой ссылочной ячейки сохраняется хэш [SHA-256][sha-2] ее стандартного представления, занимающий $32$ байта на каждую такую ​​ячейку и рекурсивно повторяющий указанный алгоритм. Обратите внимание, что циклические ссылки на ячейки недопустимы, поэтому эта рекурсия всегда заканчивается четко определенным образом.
 
-Если бы мы вычислили хэш стандартного представления этой ячейки, все байты из шагов выше были бы объединены вместе, а затем хэшированы с использованием хеша [SHA-256][sha-2]. Это алгоритм, лежащий в основе [`HASHCU` и `HASHSU` инструкций](https://docs.ton.org/learn/tvm-instructions/instructions) [TVM][tvm] и соответствующих функций [`Cell.hash(){:tact}`](/ref/core-cells#cellhash) и [`Slice.hash(){:tact}`](/ref/core-cells#slicehash) Tact.
+Если бы мы вычислили хэш стандартного представления этой ячейки, все байты из шагов выше были бы объединены вместе, а затем хэшированы с использованием хеша [SHA-256][sha-2]. Это алгоритм, лежащий в основе [`HASHCU` и `HASHSU` инструкций](https://docs.ton.org/learn/tvm-instructions/instructions) [TVM][tvm] и соответствующих функций [`Cell.hash(){:tact}`](/ru/ref/core-cells#cellhash) и [`Slice.hash(){:tact}`](/ru/ref/core-cells#slicehash) Tact.
 
 #### Пакет с ячейками {#cells-boc}
 
@@ -125,10 +125,10 @@ description: Ячейки, конструкторы и срезы - это ни�
 
 ## Типы сериализации
 
-Подобно параметрам сериализации типа [`Int{:tact}`](/book/integers), `Cell{:tact}`, `Builder{:tact}` и `Slice{:tact}` также имеют различные представления для кодирования своих значений в следующих случаях:
+Подобно параметрам сериализации типа [`Int{:tact}`](/ru/book/integers), `Cell{:tact}`, `Builder{:tact}` и `Slice{:tact}` также имеют различные представления для кодирования своих значений в следующих случаях:
 
-- как [переменные хранения](/book/contracts#variables) [контрактов](/book/contracts) и [типажей](/book/types#traits),
-- и как поля [структур](/book/structs-and-messages#structs) и [сообщений](/book/structs-and-messages#messages).
+- как [переменные хранения](/ru/book/contracts#variables) [контрактов](/ru/book/contracts) и [типажей](/ru/book/types#traits),
+- и как поля [структур](/ru/book/structs-and-messages#structs) и [сообщений](/ru/book/structs-and-messages#messages).
 
 ```tact {2-3}
 contract SerializationExample {
@@ -212,9 +212,9 @@ receive(msg: JettonTransferNotification) {
 
 :::note
 
-  Обратите внимание, что ячейка, сериализованная с помощью `as remain{:tact}`, не может быть [необязательной](/book/optionals). То есть указание чего-то вроде `Cell? as remain{:tact}`, `Builder? as remain{:tact}` или `Slice? as remain{:tact}` вызовет ошибку компиляции.
+  Обратите внимание, что ячейка, сериализованная с помощью `as remain{:tact}`, не может быть [необязательной](/ru/book/optionals). То есть указание чего-то вроде `Cell? as remain{:tact}`, `Builder? as remain{:tact}` или `Slice? as remain{:tact}` вызовет ошибку компиляции.
 
-  Также обратите внимание, что указание `remaining{:tact}` для `Cell{:tact}` как типа значения [карты](/book/maps) считается ошибкой и не будет компилироваться.
+  Также обратите внимание, что указание `remaining{:tact}` для `Cell{:tact}` как типа значения [карты](/ru/book/maps) считается ошибкой и не будет компилироваться.
 
 :::
 
@@ -240,7 +240,7 @@ receive(msg: JettonTransferNotification) {
 
 В Tact есть как минимум два способа построения и разбора ячеек:
 
-- [Вручную](#cnp-manually), что подразумевает активное использование [`Builder{:tact}`](#builders), [`Slice{:tact}`](#slices) и [соответствующих методов](/ref/core-cells).
+- [Вручную](#cnp-manually), что подразумевает активное использование [`Builder{:tact}`](#builders), [`Slice{:tact}`](#slices) и [соответствующих методов](/ru/ref/core-cells).
 - [Использование структур](#cnp-structs), что является рекомендуемым и гораздо более удобным подходом.
 
 #### Вручную {#cnp-manually}
@@ -257,30 +257,30 @@ receive(msg: JettonTransferNotification) {
 | [`.storeRef(cell){:tact}`][b-8]        | [`Slice.loadRef(){:tact}`][s-8]       |
 | [`.endCell(){:tact}`][b-9]             | [`Slice.endParse(){:tact}`][s-9]      |
 
-[b-1]: /ref/core-cells#begincell
-[b-2]: /ref/core-cells#builderstoreuint
-[b-3]: /ref/core-cells#builderstoreint
-[b-4]: /ref/core-cells#builderstorebool
-[b-5]: /ref/core-cells#builderstoreslice
-[b-6]: /ref/core-cells#builderstorecoins
-[b-7]: /ref/core-cells#builderstoreaddress
-[b-8]: /ref/core-cells#builderstoreref
-[b-9]: /ref/core-cells#builderendcell
-[s-1]: /ref/core-cells#cellbeginparse
-[s-2]: /ref/core-cells#sliceloaduint
-[s-3]: /ref/core-cells#sliceloadint
-[s-4]: /ref/core-cells#sliceloadbool
-[s-5]: /ref/core-cells#sliceloadbits
-[s-6]: /ref/core-cells#sliceloadcoins
-[s-7]: /ref/core-cells#sliceloadaddress
-[s-8]: /ref/core-cells#sliceloadref
-[s-9]: /ref/core-cells#sliceendparse
+[b-1]: /ru/ref/core-cells#begincell
+[b-2]: /ru/ref/core-cells#builderstoreuint
+[b-3]: /ru/ref/core-cells#builderstoreint
+[b-4]: /ru/ref/core-cells#builderstorebool
+[b-5]: /ru/ref/core-cells#builderstoreslice
+[b-6]: /ru/ref/core-cells#builderstorecoins
+[b-7]: /ru/ref/core-cells#builderstoreaddress
+[b-8]: /ru/ref/core-cells#builderstoreref
+[b-9]: /ru/ref/core-cells#builderendcell
+[s-1]: /ru/ref/core-cells#cellbeginparse
+[s-2]: /ru/ref/core-cells#sliceloaduint
+[s-3]: /ru/ref/core-cells#sliceloadint
+[s-4]: /ru/ref/core-cells#sliceloadbool
+[s-5]: /ru/ref/core-cells#sliceloadbits
+[s-6]: /ru/ref/core-cells#sliceloadcoins
+[s-7]: /ru/ref/core-cells#sliceloadaddress
+[s-8]: /ru/ref/core-cells#sliceloadref
+[s-9]: /ru/ref/core-cells#sliceendparse
 
 #### Использование структур (рекомендуется) {#cnp-structs}
 
 [Структуры][struct] и [сообщения][message] почти как живые [TL-B схемы][tlb]. Это означает, что они, по сути, [TL-B схемы][tlb], выраженные в поддерживаемом, проверяемом и удобном для пользователя коде Tact.
 
-Настоятельно рекомендуется использовать их и их [методы](/book/functions#extension-function), такие как [`Struct.toCell(){:tact}`][st-tc] и [`Struct.fromCell(){:tact}`][st-fc] вместо ручного создания и анализа ячеек, поскольку это позволяет создавать гораздо более декларативные и понятные контракты.
+Настоятельно рекомендуется использовать их и их [методы](/ru/book/functions#extension-function), такие как [`Struct.toCell(){:tact}`][st-tc] и [`Struct.fromCell(){:tact}`][st-fc] вместо ручного создания и анализа ячеек, поскольку это позволяет создавать гораздо более декларативные и понятные контракты.
 
 Примеры ручного разбора [выше](#cnp-manually) можно переписать с использованием [структур][struct], с описательными именами полей, если это необходимо:
 
@@ -324,7 +324,7 @@ fun example() {
 
 :::note[Useful Полезные ссылки:]
 
-  [Преобразование сериализации](/book/func#convert-serialization)\
+  [Преобразование сериализации](/ru/book/func#convert-serialization)\
 [`Struct.toCell(){:tact}` в основной библиотеке][st-tc]\
 [`Struct.fromCell(){:tact}` в основной библиотеке][st-fc]\
 [`Struct.fromSlice(){:tact}` в основной библиотеке][st-fs]\
@@ -334,12 +334,12 @@ fun example() {
 
 :::
 
-[st-tc]: /ref/core-cells#structtocell
-[st-fc]: /ref/core-cells#structfromcell
-[st-fs]: /ref/core-cells#structfromslice
-[msg-tc]: /ref/core-cells#messagetocell
-[msg-fc]: /ref/core-cells#messagefromcell
-[msg-fs]: /ref/core-cells#messagefromslice
+[st-tc]: /ru/ref/core-cells#structtocell
+[st-fc]: /ru/ref/core-cells#structfromcell
+[st-fs]: /ru/ref/core-cells#structfromslice
+[msg-tc]: /ru/ref/core-cells#messagetocell
+[msg-fc]: /ru/ref/core-cells#messagefromcell
+[msg-fs]: /ru/ref/core-cells#messagefromslice
 
 ### Проверка на пустоту {#operations-empty}
 
@@ -347,7 +347,7 @@ fun example() {
 
 Чтобы проверить, есть ли какие-либо биты, используйте [`Slice.dataEmpty(){:tact}`][s-de]. Чтобы проверить, есть ли какие-либо ссылки, используйте [`Slice.refsEmpty(){:tact}`][s-re]. А чтобы проверить оба одновременно, используйте [`Slice.empty(){:tact}`][s-e].
 
-Чтобы также выдать [код выхода 9](/book/exit-codes#9) всякий раз, когда [`Slice{:tact}`](#slices) не полностью пуст, используйте [`Slice.endParse(){:tact}`][s-ep].
+Чтобы также выдать [код выхода 9](/ru/book/exit-codes#9) всякий раз, когда [`Slice{:tact}`](#slices) не полностью пуст, используйте [`Slice.endParse(){:tact}`][s-ep].
 
 ```tact
 // Подготовка
@@ -381,8 +381,8 @@ try {
 
 :::note[Useful Полезные ссылки:]
 
-  [`Cell.asSlice(){:tact}` в основной библиотеке](/ref/core-cells#cellasslice)\
-[`Builder.asSlice(){:tact}` в основной библиотеке](/ref/core-cells#builderasslice)\
+  [`Cell.asSlice(){:tact}` в основной библиотеке](/ru/ref/core-cells#cellasslice)\
+[`Builder.asSlice(){:tact}` в основной библиотеке](/ru/ref/core-cells#builderasslice)\
 [`Slice.dataEmpty(){:tact}` в основной библиотеке][s-de]\
 [`Slice.refsEmpty(){:tact}` в основной библиотеке][s-re]\
 [`Slice.empty(){:tact}` в основной библиотеке][s-e]\
@@ -390,10 +390,10 @@ try {
 
 :::
 
-[s-de]: /ref/core-cells#slicedataempty
-[s-re]: /ref/core-cells#slicerefsempty
-[s-e]: /ref/core-cells#sliceempty
-[s-ep]: /ref/core-cells#sliceendparse
+[s-de]: /ru/ref/core-cells#slicedataempty
+[s-re]: /ru/ref/core-cells#slicerefsempty
+[s-e]: /ru/ref/core-cells#sliceempty
+[s-ep]: /ru/ref/core-cells#sliceendparse
 
 ### Проверка на равенство {#operations-equal}
 
@@ -435,19 +435,19 @@ let areSlicesNotEqual = aSlice.hash() != bSlice.hash(); // false
 
 :::note[Useful Полезные ссылки:]
 
-  [`Cell.hash(){:tact}` в основной библиотеке](/ref/core-cells#cellhash)\
-[`Slice.hash(){:tact}` в основной библиотеке](/ref/core-cells#slicehash)\
+  [`Cell.hash(){:tact}` в основной библиотеке](/ru/ref/core-cells#cellhash)\
+[`Slice.hash(){:tact}` в основной библиотеке](/ru/ref/core-cells#slicehash)\
 [`=={:tact}` и `!={:tact}`][bin-eq]
 
 :::
 
-[p]: /book/types#primitive-types
-[struct]: /book/structs-and-messages#structs
-[сообщение]: /book/structs-and-messages#messages
-[recv]: /book/contracts#receiver-functions
-[jetton]: /cookbook/jettons
+[p]: /ru/book/types#primitive-types
+[struct]: /ru/book/structs-and-messages#structs
+[сообщение]: /ru/book/structs-and-messages#messages
+[recv]: /ru/book/contracts#receiver-functions
+[jetton]: /ru/cookbook/jettons
 [tvm]: https://docs.ton.org/learn/tvm-instructions/tvm-overview
 [tlb]: https://docs.ton.org/develop/data-formats/tl-b-language
 [sha-2]: https://en.wikipedia.org/wiki/SHA-2#Hash_standard
 [quadtree]: https://en.wikipedia.org/wiki/Quadtree
-[bin-eq]: /book/operators#binary-equality
+[bin-eq]: /ru/book/operators#binary-equality

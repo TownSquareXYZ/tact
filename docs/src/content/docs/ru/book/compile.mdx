@@ -14,21 +14,21 @@ import { Badge } from '@astrojs/starlight/components';
 
 :::
 
-Компилятор Tact может создавать различные выходные данные, начиная от [BoC](/book/cells#cells-boc) скомпилированного контракта и заканчивая различными дополнительными файлами, такими как [отчёт о компиляции](#report) или [пакет контракта](/ref/evolution/otp-006), который представляет собой файл JSON с расширением `.pkg`, который можно использовать для [проверки происхождения смарт-контракта](https://verifier.ton.org).
+Компилятор Tact может создавать различные выходные данные, начиная от [BoC](/ru/book/cells#cells-boc) скомпилированного контракта и заканчивая различными дополнительными файлами, такими как [отчёт о компиляции](#report) или [пакет контракта](/ru/ref/evolution/otp-006), который представляет собой файл JSON с расширением `.pkg`, который можно использовать для [проверки происхождения смарт-контракта](https://verifier.ton.org).
 
-С помощью соответствующих [настроек конфигурации](/book/config), вы можете настроить поведение компилятора, чтобы пропустить генерацию некоторых или всех [артефактов сборки](#artifacts), а также управлять добавлением или исключением [геттеров для поддерживаемых интерфейсов](/book/contracts#interfaces).
+С помощью соответствующих [настроек конфигурации](/ru/book/config), вы можете настроить поведение компилятора, чтобы пропустить генерацию некоторых или всех [артефактов сборки](#artifacts), а также управлять добавлением или исключением [геттеров для поддерживаемых интерфейсов](/ru/book/contracts#interfaces).
 
 Поскольку компилятор Tact является программой командной строки, некоторые настройки конфигурации можно задать напрямую. Если вы находитесь в папке с проектом на основе Tact, например, созданным с помощью [Blueprint](https://github.com/ton-org/blueprint) или [tact-template](https://github.com/tact-lang/tact-template), используйте команду `npx tact --help{:shell}` для получения дополнительных инструкций.
 
 ## Артефакты сборки {#artifacts}
 
-При компиляции каждого контракта может быть создано несколько артефактов сборки. Некоторые из артефактов можно исключить с помощью [настроек конфигурации](/book/config).
+При компиляции каждого контракта может быть создано несколько артефактов сборки. Некоторые из артефактов можно исключить с помощью [настроек конфигурации](/ru/book/config).
 
-Местоположение артефактов зависит от поля [`output`](/book/config#projects-output) в [`tact.config.json`](/book/config). В проектах на основе [Blueprint][bp] `output`не используется, и все сгенерированные файлы всегда размещаются в `build/ProjectName/`.
+Местоположение артефактов зависит от поля [`output`](/ru/book/config#projects-output) в [`tact.config.json`](/ru/book/config). В проектах на основе [Blueprint][bp] `output`не используется, и все сгенерированные файлы всегда размещаются в `build/ProjectName/`.
 
 ### Отчёт о компиляции, `.md` {#report}
 
-Каждый отчёт о компиляции в формате markdown сначала содержит название контракта, для которого он был подготовлен, а затем размер контракта в байтах, скомпилированного в [BoC](/book/cells#cells-boc).
+Каждый отчёт о компиляции в формате markdown сначала содержит название контракта, для которого он был подготовлен, а затем размер контракта в байтах, скомпилированного в [BoC](/ru/book/cells#cells-boc).
 
 В следующих подзаголовках описаны соответствующие разделы `.md` отчёта.
 
@@ -36,9 +36,9 @@ import { Badge } from '@astrojs/starlight/components';
 
 <Badge text="До Tact 1.6 использовалось название '# Types' " variant="tip" size="medium"/><p/>
 
-В первом разделе представлены существующие структуры, то есть некоторые [составные типы](/book/types#composite-types), [структуры и сообщения](/book/structs-and-messages) которые объявляются или импортируются непосредственно в код контракта, а также те, которые предоставляются стандартной библиотекой Core.
+В первом разделе представлены существующие структуры, то есть некоторые [составные типы](/ru/book/types#composite-types), [структуры и сообщения](/ru/book/structs-and-messages) которые объявляются или импортируются непосредственно в код контракта, а также те, которые предоставляются стандартной библиотекой Core.
 
-Помимо количества существующих структур, каждая из [структур][struct] и [сообщений][message] описывается с их соответствующими сигнатурами и [TL-B схемами][tlb], которые включают [опкоды сообщений](/book/structs-and-messages#message-opcodes).
+Помимо количества существующих структур, каждая из [структур][struct] и [сообщений][message] описывается с их соответствующими сигнатурами и [TL-B схемами][tlb], которые включают [опкоды сообщений](/ru/book/structs-and-messages#message-opcodes).
 
 Например:
 
@@ -56,7 +56,7 @@ Signature: `Deploy{queryId:uint64}`
 ...etc.
 ```
 
-[TL-B схема][tlb] каждого [сообщения][message] содержит его опкод, что удобно для поиска автоматически сгенерированных опкодов, а также для подтверждения [вручную заданных кодов](/book/structs-and-messages#message-opcodes). Например, следующие объявления [сообщений][message]:
+[TL-B схема][tlb] каждого [сообщения][message] содержит его опкод, что удобно для поиска автоматически сгенерированных опкодов, а также для подтверждения [вручную заданных кодов](/ru/book/structs-and-messages#message-opcodes). Например, следующие объявления [сообщений][message]:
 
 ```tact
 message GeneratedOpcode { }
@@ -79,7 +79,7 @@ Signature: `ManuallySpecifiedOpcode{}`
 
 #### Get-методы {#getters}
 
-В этом разделе указано количество доступных get-методов или [геттер-функций](/book/functions#getter-functions) а также приводится их описание с названиями аргументов, если они есть.
+В этом разделе указано количество доступных get-методов или [геттер-функций](/ru/book/functions#getter-functions) а также приводится их описание с названиями аргументов, если они есть.
 
 Например:
 
@@ -96,7 +96,7 @@ Argument: x
 
 #### Коды завершения {#exit-codes}
 
-В этом разделе перечислены все стандартные [коды завершения](/book/exit-codes),а также коды, сгенерированные из сообщений об ошибках [`require(){:tact}`](/ref/core-debug#require), вместе с этими сообщениями для удобства.
+В этом разделе перечислены все стандартные [коды завершения](/ru/book/exit-codes),а также коды, сгенерированные из сообщений об ошибках [`require(){:tact}`](/ru/ref/core-debug#require), вместе с этими сообщениями для удобства.
 
 Например:
 
@@ -108,31 +108,31 @@ Argument: x
 * 42933: Hey, I'm the error message of require()
 ```
 
-При этом [коды завершения](/book/exit-codes) в диапазоне от $0$ до $255$ зарезервированы для TON Blockchain или компилятора Tact, тогда как код завершения $42933$ создаётся соответствующим вызовом функции [`require(){:tact}`](/ref/core-debug#require).
+При этом [коды завершения](/ru/book/exit-codes) в диапазоне от $0$ до $255$ зарезервированы для TON Blockchain или компилятора Tact, тогда как код завершения $42933$ создаётся соответствующим вызовом функции [`require(){:tact}`](/ru/ref/core-debug#require).
 
 #### Диаграмма наследования трейтoв {#trait-diagram}
 
-В этом разделе представлена диаграмма [Mermaid][mm] [унаследованных трейтов](/book/contracts#traits), включая [`BaseTrait{:tact}`](/ref/core-base).
+В этом разделе представлена диаграмма [Mermaid][mm] [унаследованных трейтов](/ru/book/contracts#traits), включая [`BaseTrait{:tact}`](/ru/ref/core-base).
 
 Например:
 
 ![Диаграмма наследования трейтов](../../../assets/trait-inheritance-diagram.png)
 
-Например, [`JettonWallet`][code-jetton-wallet] наследует трейты `WalletExitcodes` и `GasConstant` а все они, в свою очередь, наследуют [`BaseTrait{:tact}`](/ref/core-base).
+Например, [`JettonWallet`][code-jetton-wallet] наследует трейты `WalletExitcodes` и `GasConstant` а все они, в свою очередь, наследуют [`BaseTrait{:tact}`](/ru/ref/core-base).
 
 #### Диаграмма зависимостей контракта {#contract-diagram}
 
-В этом разделе представлена диаграмма [Mermaid][mm] зависимостей [контрактов](/book/contracts) то есть всех вызовов [`initOf{:tact}`](/book/expressions#initof) используемых для вычисления начального состояния других контрактов.
+В этом разделе представлена диаграмма [Mermaid][mm] зависимостей [контрактов](/ru/book/contracts) то есть всех вызовов [`initOf{:tact}`](/ru/book/expressions#initof) используемых для вычисления начального состояния других контрактов.
 
 Если у контракта нет зависимостей, отображается только его название:
 
 ![Диаграмма контрактных зависимостей без зависимостей](../../..//assets/contract-dependency-diagram.png)
 
-Однако, если контракт, например `FirstOne`, где-то в своём коде вычисляет [начальное состояние](/book/expressions#initof) другого контракта, например `SecondOne`, такая взаимосвязь отображается на диаграмме:
+Однако, если контракт, например `FirstOne`, где-то в своём коде вычисляет [начальное состояние](/ru/book/expressions#initof) другого контракта, например `SecondOne`, такая взаимосвязь отображается на диаграмме:
 
 ![Диаграмма зависимостей контракта с одной зависимостью](../../../assets/contract-dependency-diagram-2.png)
 
-Реальным примером такого случая является контракт [`JettonMinter`][code-jetton-minter], который часто называют [Jetton Master](/cookbook/jettons#jetton-master-contract). Часто `JettonMinter` требуется [начальное состояние](/book/expressions#initof) [`JettonWallet`][code-jetton-wallet], поэтому в `JettonMinter` определяется следующая [внутренняя функция](/book/contracts#internal-functions):
+Реальным примером такого случая является контракт [`JettonMinter`][code-jetton-minter], который часто называют [Jetton Master](/ru/cookbook/jettons#jetton-master-contract). Часто `JettonMinter` требуется [начальное состояние](/ru/book/expressions#initof) [`JettonWallet`][code-jetton-wallet], поэтому в `JettonMinter` определяется следующая [внутренняя функция](/ru/book/contracts#internal-functions):
 
 ```tact
 inline fun getJettonWalletInit(address: Address): StateInit {
@@ -144,8 +144,8 @@ inline fun getJettonWalletInit(address: Address): StateInit {
 
 ![Диаграмма зависимостей контракта JettonMinter](../../../assets/contract-dependency-diagram-3.png)
 
-[struct]: /book/structs-and-messages#structs
-[message]: /book/structs-and-messages#messages
+[struct]: /ru/book/structs-and-messages#structs
+[message]: /ru/book/structs-and-messages#messages
 [tlb]: https://docs.ton.org/develop/data-formats/tl-b-language
 [mm]: https://mermaid.js.org/
 [code-jetton-wallet]: https://github.com/tact-lang/jetton/blob/ef802f95c967f2fd37e80893845c3c3ed7c34c78/sources/jetton_wallet.tact

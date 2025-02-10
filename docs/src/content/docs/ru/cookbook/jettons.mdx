@@ -59,7 +59,7 @@ message(0x7362d09c) JettonTransferNotification {
 }
 ```
 
-Используйте функцию [receiver](/book/receive), чтобы принять сообщение с уведомлением о токене.
+Используйте функцию [receiver](/ru/book/receive), чтобы принять сообщение с уведомлением о токене.
 
 :::caution
 
@@ -77,11 +77,11 @@ message(0x7362d09c) JettonTransferNotification {
 3. После успешного принятия перевода Jetton wallet контракта отправляет уведомление о переводе в контракт владельца.
 4. Контракт валидирует сообщение Jetton.
 
-Вы можете получить адрес кошелька Jetton контракта, используя функцию [`contractAddress(){:tact}`](/ref/core-common#contractaddress) или вычислить этот адрес offchain.
+Вы можете получить адрес кошелька Jetton контракта, используя функцию [`contractAddress(){:tact}`](/ru/ref/core-common#contractaddress) или вычислить этот адрес offchain.
 
 Чтобы инициализировать состояние кошелька Jetton, вам понадобятся данные и код кошелька. Несмотря на то, что существует общая структура размещения исходных данных, в некоторых случаях она может отличаться, например, в случае с [USDT](#usdt-jetton-operations).
 
-Поскольку уведомления поступают из кошелька Jetton вашего контракта, в поле `ownerAddress` следует использовать функцию [`myAddress(){:tact}`](/ref/core-common#myaddress).
+Поскольку уведомления поступают из кошелька Jetton вашего контракта, в поле `ownerAddress` следует использовать функцию [`myAddress(){:tact}`](/ru/ref/core-common#myaddress).
 
 :::caution
 
@@ -155,7 +155,7 @@ contract Example with Deployable {
 
 Перевод Jetton - это процесс отправки определённого количества жетонов с одного кошелька (контракта) на другой.
 
-Для отправки перевода Jetton используйте функцию [`send(){:tact}`](/book/send).
+Для отправки перевода Jetton используйте функцию [`send(){:tact}`](/ru/book/send).
 
 ```tact
 import "@stdlib/deploy";

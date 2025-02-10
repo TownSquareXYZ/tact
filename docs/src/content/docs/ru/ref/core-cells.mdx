@@ -15,7 +15,7 @@ import { Badge } from '@astrojs/starlight/components';
 
   Для этого опытным пользователям рекомендуется использовать [Type Language - Binary (TL-B)][tlb].
 
-  Всем пользователям рекомендуется использовать [структуры][struct] и их [методы](/book/functions#extension-function), такие как [`Struct.toCell(){:tact}`](#structtocell) и [`Struct.fromCell(){:tact}`](#structfromcell) вместо ручного создания и парсинга ячеек, потому что [Structs][struct] и [Messages][message] ближе всего к [живыми TL-B схемам ваших контрактов](/book/cells#cnp-structs).
+  Всем пользователям рекомендуется использовать [структуры][struct] и их [методы](/ru/book/functions#extension-function), такие как [`Struct.toCell(){:tact}`](#structtocell) и [`Struct.fromCell(){:tact}`](#structfromcell) вместо ручного создания и парсинга ячеек, потому что [Structs][struct] и [Messages][message] ближе всего к [живыми TL-B схемам ваших контрактов](/ru/book/cells#cnp-structs).
 
 :::
 
@@ -145,7 +145,7 @@ extends fun storeUint(self: Builder, value: Int, bits: Int): Builder;
 
 Сохраняет беззнаковое `bits`-битное `value` в копию [`Builder{:tact}`][builder] для $0 ≤$ `bits` $≤ 256$. Возвращает эту копию.
 
-Попытки сохранить отрицательное `value` или указать недостаточное или выходящее за пределы значение `bits` число вызывают исключение с [кодом завершения 5](/book/exit-codes#5): `Integer out of expected range`.
+Попытки сохранить отрицательное `value` или указать недостаточное или выходящее за пределы значение `bits` число вызывают исключение с [кодом завершения 5](/ru/book/exit-codes#5): `Integer out of expected range`.
 
 Пример использования:
 
@@ -164,7 +164,7 @@ extends fun storeInt(self: Builder, value: Int, bits: Int): Builder;
 
 Сохраняет знаковое `bits`-битное `value` в копию [`Builder{:tact}`][builder] для $0 ≤$ `bits` $≤ 257$. Возвращает эту копию.
 
-Попытки указать недостаточное или выходящее за пределы значение `bits` вызываю исключение с [кодом завершения 5](/book/exit-codes#5): `Integer out of expected range`.
+Попытки указать недостаточное или выходящее за пределы значение `bits` вызываю исключение с [кодом завершения 5](/ru/book/exit-codes#5): `Integer out of expected range`.
 
 Пример использования:
 
@@ -255,7 +255,7 @@ extends fun storeCoins(self: Builder, value: Int): Builder;
 
 Сохраняет (сериализует) беззнаковое [`Int{:tact}`][int] `value` в диапазоне $0 .. 2^{120} - 1$ в копию [`Builder{:tact}`][builder]. Сериализация `value` состоит из $4$-битного беззнакового big-endian целого числа $l$, которое является наименьшим целым числом $l ≥ 0$, таким, что `value` $< 2^{8 _ l}$, за которым следует $8 _ l$-битное беззнаковое big-endian, представляющее `value`. Возвращает копию [`Builder{:tact}`][builder].
 
-Попытки сохранить значение `value`, выходящее за пределы допустимого диапазона, вызывают исключение с [кодом завершения 5](/book/exit-codes#5): `Integer out of expected range`.
+Попытки сохранить значение `value`, выходящее за пределы допустимого диапазона, вызывают исключение с [кодом завершения 5](/ru/book/exit-codes#5): `Integer out of expected range`.
 
 Это самый распространенный способ хранения [нанотонкоинов] (/book/integers#nanotoncoin).
 
@@ -268,7 +268,7 @@ let fizz: Builder = b.storeCoins(42);
 
 :::note[Useful [Полезные ссылки:]
 
-  [Специальный тип сериализации `coins`](/book/integers#serialization-coins)
+  [Специальный тип сериализации `coins`](/ru/book/integers#serialization-coins)
 
 :::
 
@@ -299,7 +299,7 @@ extends fun storeRef(self: Builder, cell: Cell): Builder;
 
 Сохраняет ссылку `cell` в копии [`Builder{:tact}`][builder]. Возвращает эту копию.
 
-Поскольку одна [`Cell{:tact}`][cell] может содержать до $4$ ссылок, попытки сохранить больше вызывают исключение с [кодом завершения 8](/book/exit-codes#8): `Cell overflow`.
+Поскольку одна [`Cell{:tact}`][cell] может содержать до $4$ ссылок, попытки сохранить больше вызывают исключение с [кодом завершения 8](/ru/book/exit-codes#8): `Cell overflow`.
 
 Пример использования:
 
@@ -322,7 +322,7 @@ extends fun storeMaybeRef(self: Builder, cell: Cell?): Builder;
 
 Если `cell` равна `null{:tact}`, сохраняет только $0$ как один бит в копию [`Builder{:tact}`][builder]. Возвращает эту копию.
 
-Поскольку одна [`Cell{:tact}`][cell] может содержать до $4$ ссылок, попытки сохранить больше вызывают исключение с [кодом завершения 8](/book/exit-codes#8): `Cell overflow`.
+Поскольку одна [`Cell{:tact}`][cell] может содержать до $4$ ссылок, попытки сохранить больше вызывают исключение с [кодом завершения 8](/ru/book/exit-codes#8): `Cell overflow`.
 
 Пример использования:
 
@@ -411,9 +411,9 @@ extends mutates fun loadUint(self: Slice, l: Int): Int;
 
 Загружает и возвращает беззнаковое `l`-битное [`Int{:tact}`][int] из [`Slice{:tact}`][slice] для $0 ≤$ `l` $≤ 256$.
 
-Попытки указать значение `l`, выходящее за пределы допустимого диапазона, вызывают исключение с [кодом завершения 5](/book/exit-codes#5): `Integer out of expected range`.
+Попытки указать значение `l`, выходящее за пределы допустимого диапазона, вызывают исключение с [кодом завершения 5](/ru/book/exit-codes#5): `Integer out of expected range`.
 
-Попытки загрузить больше данных, чем содержится в [`Slice{:tact}`][slice], вызывают исключение с [кодом завершения 9](/book/exit-codes#9): `Cell underflow`.
+Попытки загрузить больше данных, чем содержится в [`Slice{:tact}`][slice], вызывают исключение с [кодом завершения 9](/ru/book/exit-codes#9): `Cell underflow`.
 
 Пример использования:
 
@@ -432,9 +432,9 @@ extends fun preloadUint(self: Slice, l: Int): Int;
 
 Предварительно загружает и возвращает беззнаковый `l`-битный [`Int{:tact}`][int] из [`Slice{:tact}`][slice] для $0 ≤$ `l` $≤ 256$. Не изменяет [`Slice{:tact}`][slice].
 
-Попытки указать значение `l`, выходящее за пределы допустимого диапазона, вызывают исключение с [кодом завершения 5](/book/exit-codes#5): `Integer out of expected range`.
+Попытки указать значение `l`, выходящее за пределы допустимого диапазона, вызывают исключение с [кодом завершения 5](/ru/book/exit-codes#5): `Integer out of expected range`.
 
-Попытки предзагрузить больше данных, чем содержится в [`Slice{:tact}`][slice], вызывают исключение с [кодом завершения 9](/book/exit-codes#9): `Cell underflow`.
+Попытки предзагрузить больше данных, чем содержится в [`Slice{:tact}`][slice], вызывают исключение с [кодом завершения 9](/ru/book/exit-codes#9): `Cell underflow`.
 
 Пример использования:
 
@@ -453,9 +453,9 @@ extends mutates fun loadInt(self: Slice, l: Int): Int;
 
 Загружает и возвращает знаковое `l`-битное [`Int{:tact}`][int] из [`Slice{:tact}`][slice] для $0 ≤$ `l` $≤ 257$.
 
-Попытки указать значение `l`, выходящее за пределы допустимого диапазона, вызывают исключение с [кодом завершения 5](/book/exit-codes#5): `Integer out of expected range`.
+Попытки указать значение `l`, выходящее за пределы допустимого диапазона, вызывают исключение с [кодом завершения 5](/ru/book/exit-codes#5): `Integer out of expected range`.
 
-Попытки загрузить больше данных, чем содержится в [`Slice{:tact}`][slice], вызывают исключение с [кодом завершения 9](/book/exit-codes#9): `Cell underflow`.
+Попытки загрузить больше данных, чем содержится в [`Slice{:tact}`][slice], вызывают исключение с [кодом завершения 9](/ru/book/exit-codes#9): `Cell underflow`.
 
 Пример использования:
 
@@ -474,9 +474,9 @@ extends fun preloadInt(self: Slice, l: Int): Int;
 
 Предварительно загружает и возвращает знаковое `l`-битное [`Int{:tact}`][int] из [`Slice{:tact}`][slice] для $0 ≤$ `l` $≤ 257$. Не изменяет [`Slice{:tact}`][slice].
 
-Попытки указать значение `l`, выходящее за пределы допустимого диапазона, вызывают исключение с [кодом завершения 5](/book/exit-codes#5): `Integer out of expected range`.
+Попытки указать значение `l`, выходящее за пределы допустимого диапазона, вызывают исключение с [кодом завершения 5](/ru/book/exit-codes#5): `Integer out of expected range`.
 
-Попытки предзагрузить больше данных, чем содержится в [`Slice{:tact}`][slice], вызывают исключение с [кодом завершения 9](/book/exit-codes#9): `Cell underflow`.
+Попытки предзагрузить больше данных, чем содержится в [`Slice{:tact}`][slice], вызывают исключение с [кодом завершения 9](/ru/book/exit-codes#9): `Cell underflow`.
 
 Пример использования:
 
@@ -495,9 +495,9 @@ extends mutates fun loadBits(self: Slice, l: Int): Slice;
 
 Загружает $0 ≤$ `l` $≤ 1023$ бит из [`Slice{:tact}`][slice] и возвращает их как отдельный [`Slice{:tact}`][slice].
 
-Попытки указать значение `l`, выходящее пределы допустимого диапазона, вызывают исключение с [кодом завершения 5](/book/exit-codes#5): `Integer out of expected range`.
+Попытки указать значение `l`, выходящее пределы допустимого диапазона, вызывают исключение с [кодом завершения 5](/ru/book/exit-codes#5): `Integer out of expected range`.
 
-Попытки загрузить больше данных, чем содержится в [`Slice{:tact}`][slice], вызывают исключение с [кодом завершения 9](/book/exit-codes#9): `Cell underflow`.
+Попытки загрузить больше данных, чем содержится в [`Slice{:tact}`][slice], вызывают исключение с [кодом завершения 9](/ru/book/exit-codes#9): `Cell underflow`.
 
 Пример использования:
 
@@ -516,9 +516,9 @@ extends fun preloadBits(self: Slice, l: Int): Slice;
 
 Предзагружает $0 ≤$ `l` $≤ 1023$ бит из [`Slice{:tact}`][slice] и загружает его как отдельный [`Slice{:tact}`][slice]. Не изменяет оригинальный [`Slice{:tact}`][slice].
 
-Попытки указать значение `l`, выходящее за пределы допустимого диапазона, вызывают исключение с [кодом завершения 5](/book/exit-codes#5): `Integer out of expected range`.
+Попытки указать значение `l`, выходящее за пределы допустимого диапазона, вызывают исключение с [кодом завершения 5](/ru/book/exit-codes#5): `Integer out of expected range`.
 
-Попытки предзагрузить больше данных, чем содержится в [`Slice{:tact}`][slice], вызывают исключение с [кодом завершения 9](/book/exit-codes#9): `Cell underflow`.
+Попытки предзагрузить больше данных, чем содержится в [`Slice{:tact}`][slice], вызывают исключение с [кодом завершения 9](/ru/book/exit-codes#9): `Cell underflow`.
 
 Пример использования:
 
@@ -537,9 +537,9 @@ extends mutates fun skipBits(self: Slice, l: Int);
 
 Загружает все, кроме первых $0 ≤$ `l` $≤ 1023$ бит из [`Slice{:tact}`][slice].
 
-Попытки указать значение `l`, выходящее за пределы допустимого диапазона, вызывают исключение с [кодом завершения 5](/book/exit-codes#5): `Integer out of expected range`.
+Попытки указать значение `l`, выходящее за пределы допустимого диапазона, вызывают исключение с [кодом завершения 5](/ru/book/exit-codes#5): `Integer out of expected range`.
 
-Попытки загрузить больше данных, чем содержится в [`Slice{:tact}`][slice], вызывают исключение с [кодом завершения 9](/book/exit-codes#9): `Cell underflow`.
+Попытки загрузить больше данных, чем содержится в [`Slice{:tact}`][slice], вызывают исключение с [кодом завершения 9](/ru/book/exit-codes#9): `Cell underflow`.
 
 Пример использования:
 
@@ -559,9 +559,9 @@ extends mutates fun loadBool(self: Slice): Bool;
 
 Загружает один бит и возвращает значение [`Bool{:tact}`][bool] из [`Slice{:tact}`][slice]. Считывает `true{:tact}`, если загруженный бит равен $1$, и считывает `false{:tact}` в противном случае.
 
-Попытки загрузить такой [`Bool{:tact}`][bool], если [`Slice{:tact}`][slice] его не содержит, вызывают исключение с [кодом завершения 8](/book/exit-codes#8): `Cell overflow`.
+Попытки загрузить такой [`Bool{:tact}`][bool], если [`Slice{:tact}`][slice] его не содержит, вызывают исключение с [кодом завершения 8](/ru/book/exit-codes#8): `Cell overflow`.
 
-Попытки загрузить больше данных, чем содержится в [`Slice{:tact}`][slice], вызывают исключение с [кодом завершения 9](/book/exit-codes#9): `Cell underflow`.
+Попытки загрузить больше данных, чем содержится в [`Slice{:tact}`][slice], вызывают исключение с [кодом завершения 9](/ru/book/exit-codes#9): `Cell underflow`.
 
 Пример использования:
 
@@ -595,11 +595,11 @@ extends mutates fun loadCoins(self: Slice): Int;
 
 Расширяющая функция мутации для [`Slice{:tact}`][slice].
 
-Загружает и возвращает [сериализованное](#builderstorecoins) беззнаковое значение [`Int{:tact}`][int] в диапазоне $0 .. 2^{120} - 1$ из [`Slice{:tact}`][slice]. Это значение обычно представляет собой сумму в [нанотонкоинах](/book/integers#nanotoncoin).
+Загружает и возвращает [сериализованное](#builderstorecoins) беззнаковое значение [`Int{:tact}`][int] в диапазоне $0 .. 2^{120} - 1$ из [`Slice{:tact}`][slice]. Это значение обычно представляет собой сумму в [нанотонкоинах](/ru/book/integers#nanotoncoin).
 
-Попытки загрузить такое [`Int{:tact}`][int], если [`Slice{:tact}`][slice] его не содержит, вызывают исключение с [кодом завершения 8](/book/exit-codes#8): `Cell overflow`.
+Попытки загрузить такое [`Int{:tact}`][int], если [`Slice{:tact}`][slice] его не содержит, вызывают исключение с [кодом завершения 8](/ru/book/exit-codes#8): `Cell overflow`.
 
-Попытки загрузить больше данных, чем содержится в [`Slice{:tact}`][slice], вызывают исключение с [кодом завершения 9](/book/exit-codes#9): `Cell underflow`.
+Попытки загрузить больше данных, чем содержится в [`Slice{:tact}`][slice], вызывают исключение с [кодом завершения 9](/ru/book/exit-codes#9): `Cell underflow`.
 
 Пример использования:
 
@@ -610,7 +610,7 @@ let fizz: Int = s.loadCoins();
 
 :::note[Useful [Полезные ссылки:]
 
-  [Специальный тип сериализации `coins`](/book/integers#serialization-coins)
+  [Специальный тип сериализации `coins`](/ru/book/integers#serialization-coins)
 
 :::
 
@@ -624,9 +624,9 @@ extends mutates fun loadAddress(self: Slice): Address;
 
 Загружает и возвращает [`Address{:tact}`][p] из [`Slice{:tact}`][slice].
 
-Попытки загрузить такой [`Address{:tact}`][p] если [`Slice{:tact}`][slice] его не содержит, вызывают исключение с [кодом завершения 8](/book/exit-codes#8): `Cell overflow`.
+Попытки загрузить такой [`Address{:tact}`][p] если [`Slice{:tact}`][slice] его не содержит, вызывают исключение с [кодом завершения 8](/ru/book/exit-codes#8): `Cell overflow`.
 
-Попытки загрузить больше данных, чем содержится в [`Slice{:tact}`][slice], вызывают исключение с [кодом завершения 9](/book/exit-codes#9): `Cell underflow`.
+Попытки загрузить больше данных, чем содержится в [`Slice{:tact}`][slice], вызывают исключение с [кодом завершения 9](/ru/book/exit-codes#9): `Cell underflow`.
 
 Пример использования:
 
@@ -645,9 +645,9 @@ extends mutates fun loadRef(self: Slice): Cell;
 
 Загружает следующую ссылку из [`Slice{:tact}`][slice] как [`Cell{:tact}`][cell].
 
-Попытки загрузить такую ссылку [`Cell{:tact}`][cell], если [`Slice{:tact}`][slice] не содержит ее, вызывают исключение с [кодом завершения 8](/book/exit-codes#8): `Cell overflow`.
+Попытки загрузить такую ссылку [`Cell{:tact}`][cell], если [`Slice{:tact}`][slice] не содержит ее, вызывают исключение с [кодом завершения 8](/ru/book/exit-codes#8): `Cell overflow`.
 
-Попытки загрузить больше данных, чем содержится в [`Slice{:tact}`][slice], вызывают исключение с [кодом завершения 9](/book/exit-codes#9): `Cell underflow`.
+Попытки загрузить больше данных, чем содержится в [`Slice{:tact}`][slice], вызывают исключение с [кодом завершения 9](/ru/book/exit-codes#9): `Cell underflow`.
 
 Примеры использования:
 
@@ -674,9 +674,9 @@ extends fun preloadRef(self: Slice): Cell;
 
 Предзагружает следующую ссылку из [`Slice{:tact}`][slice] как [`Cell{:tact}`][cell]. Не изменяет оригинал [`Slice{:tact}`][slice].
 
-Попытки предзагрузить такую ссылку [`Cell{:tact}`][cell], если [`Slice{:tact}`][slice] не содержит ее, вызывают исключение с [кодом завершения 8](/book/exit-codes#8): `Cell overflow`.
+Попытки предзагрузить такую ссылку [`Cell{:tact}`][cell], если [`Slice{:tact}`][slice] не содержит ее, вызывают исключение с [кодом завершения 8](/ru/book/exit-codes#8): `Cell overflow`.
 
-Попытки предзагрузить больше данных, чем содержится в [`Slice{:tact}`][slice], вызывают исключение с [кодом завершения 9](/book/exit-codes#9): `Cell underflow`.
+Попытки предзагрузить больше данных, чем содержится в [`Slice{:tact}`][slice], вызывают исключение с [кодом завершения 9](/ru/book/exit-codes#9): `Cell underflow`.
 
 Примеры использования:
 
@@ -797,7 +797,7 @@ extends fun endParse(self: Slice);
 
 Функция расширения для [`Slice{:tact}`][slice].
 
-Проверяет, является ли [`Slice{:tact}`][slice] пустым (т.е. не содержит ни бит данных и ни ссылок на ячейки). Если нет, вызывает исключение с [кодом завершения 9](/book/exit-codes#9): `Cell underflow`.
+Проверяет, является ли [`Slice{:tact}`][slice] пустым (т.е. не содержит ни бит данных и ни ссылок на ячейки). Если нет, вызывает исключение с [кодом завершения 9](/ru/book/exit-codes#9): `Cell underflow`.
 
 Примеры использования:
 
@@ -932,7 +932,7 @@ extends fun fromCell(self: Struct, cell: Cell): Struct;
 
 Преобразует [`Cell{:tact}`][cell] в указанный [Struct][struct] и возвращает этот [Struct][struct].
 
-Попытки передать [`Cell{:tact}`][cell] с макетом, отличным от указанного [Struct][struct], или загрузить больше данных, чем содержит [`Cell{:tact}`][cell], вызывают исключение с [кодом завершения 9](/book/exit-codes#9): `Cell underflow`.
+Попытки передать [`Cell{:tact}`][cell] с макетом, отличным от указанного [Struct][struct], или загрузить больше данных, чем содержит [`Cell{:tact}`][cell], вызывают исключение с [кодом завершения 9](/ru/book/exit-codes#9): `Cell underflow`.
 
 Примеры использования:
 
@@ -967,7 +967,7 @@ extends fun fromSlice(self: Struct, slice: Slice): Struct;
 
 Преобразует [`Slice{:tact}`][slice] в указанную [Struct][struct] и возвращает эту [Struct][struct].
 
-Попытки передать [`Slice{:tact}`][slice] с макетом, отличным от указанной [Struct][struct], или загрузить больше данных, чем содержит [`Slice{:tact}`][slice], вызывают исключение с [кодом завершения 9](/book/exit-codes#9): `Cell underflow`.
+Попытки передать [`Slice{:tact}`][slice] с макетом, отличным от указанной [Struct][struct], или загрузить больше данных, чем содержит [`Slice{:tact}`][slice], вызывают исключение с [кодом завершения 9](/ru/book/exit-codes#9): `Cell underflow`.
 
 Примеры использования:
 
@@ -1056,7 +1056,7 @@ extends fun fromCell(self: Message, cell: Cell): Message;
 
 Преобразует [`Cell{:tact}`][cell] в указанный [Message][message] и возвращает этот [Message][message].
 
-Попытки передать [`Cell{:tact}`][cell] с макетом, отличным от указанного [Message][message], или загрузить больше данных, чем содержит [`Cell{:tact}`][cell], вызывают исключение с [кодом завершения 9](/book/exit-codes#9): `Cell underflow`.
+Попытки передать [`Cell{:tact}`][cell] с макетом, отличным от указанного [Message][message], или загрузить больше данных, чем содержит [`Cell{:tact}`][cell], вызывают исключение с [кодом завершения 9](/ru/book/exit-codes#9): `Cell underflow`.
 
 Примеры использования:
 
@@ -1090,7 +1090,7 @@ extends fun fromSlice(self: Message, slice: Slice): Message;
 
 Преобразует [`Slice{:tact}`][slice] в указанный [Message][message] и возвращает этот [Message][message].
 
-Попытки передать [`Slice{:tact}`][slice] с макетом, отличным от указанного [Message][message], или загрузить больше данных, чем содержит [`Slice{:tact}`][slice], вызывают исключение с [кодом завершения 9](/book/exit-codes#9): `Cell underflow`.
+Попытки передать [`Slice{:tact}`][slice] с макетом, отличным от указанного [Message][message], или загрузить больше данных, чем содержит [`Slice{:tact}`][slice], вызывают исключение с [кодом завершения 9](/ru/book/exit-codes#9): `Cell underflow`.
 
 Примеры использования:
 
@@ -1114,15 +1114,15 @@ fun cautiousParse(payload: Slice): TripleAxe? {
 }
 ```
 
-[p]: /book/types#primitive-types
-[bool]: /book/types#booleans
-[int]: /book/integers
-[cell]: /book/cells#cells
-[builder]: /book/cells#builders
-[slice]: /book/cells#slices
-[map]: /book/maps
-[struct]: /book/structs-and-messages#structs
-[message]: /book/structs-and-messages#messages
-[std-repr]: /book/cells#cells-representation
+[p]: /ru/book/types#primitive-types
+[bool]: /ru/book/types#booleans
+[int]: /ru/book/integers
+[cell]: /ru/book/cells#cells
+[builder]: /ru/book/cells#builders
+[slice]: /ru/book/cells#slices
+[map]: /ru/book/maps
+[struct]: /ru/book/structs-and-messages#structs
+[message]: /ru/book/structs-and-messages#messages
+[std-repr]: /ru/book/cells#cells-representation
 [tlb]: https://docs.ton.org/develop/data-formats/tl-b-language
 [sha-2]: https://en.wikipedia.org/wiki/SHA-2#Hash_standard

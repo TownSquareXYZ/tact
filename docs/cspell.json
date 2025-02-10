@@ -39,6 +39,7 @@
     "dist",
     "out",
     "src/content/docs/ref/spec.mdx",
-    "src/content/docs/zh-cn"
+    "src/content/docs/zh-cn",
+    "src/content/docs/ru"
   ]
 }

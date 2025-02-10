@@ -13,7 +13,7 @@ import "@stdlib/stoppable"; // это также автоматически им
 
 ## Типажи
 
-### Останавливаемый
+### Останавливаемый {#stoppable}
 
 [Типаж](/ru/book/types#composite-types) `Stoppable{:tact}` реализует приемник для [сообщения](/ru/book/structs-and-messages#messages) [строку](/ru/book/types#primitive-types) "Stop", который может быть отправлен владельцем, реализует `stopped(){:tact}` [функцию получения](/ru/book/functions#getter-functions), которая возвращает `true{:tact}`, если контракт остановлен (или `false{:tact}` в противном случае), и предоставляет частные (не получающие) функции `requireNotStopped(){:tact}` и `requireStopped(){:tact}`.
 
@@ -63,7 +63,7 @@ contract MyContract with Stoppable {
 }
 ```
 
-### Возобновляемый
+### Возобновляемый {#resumable}
 
 `Resumable{:tact}` [типаж](/ru/book/types#composite-types) расширяет черту [`Stoppable{:tact}`](#stoppable) и позволяет возобновить выполнение [контракта](/ru/book/contracts).
 

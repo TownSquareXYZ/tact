@@ -116,7 +116,7 @@ Argument: x
 
 Например:
 
-![Диаграмма наследования трейтов](../../../assets/trait-inheritance-diagram.png)
+![Диаграмма наследования трейтов](../../../../assets/trait-inheritance-diagram.png)
 
 Например, [`JettonWallet`][code-jetton-wallet] наследует трейты `WalletExitcodes` и `GasConstant` а все они, в свою очередь, наследуют [`BaseTrait{:tact}`](/ru/ref/core-base).
 
@@ -126,11 +126,11 @@ Argument: x
 
 Если у контракта нет зависимостей, отображается только его название:
 
-![Диаграмма контрактных зависимостей без зависимостей](../../..//assets/contract-dependency-diagram.png)
+![Диаграмма контрактных зависимостей без зависимостей](../../../../assets/contract-dependency-diagram.png)
 
 Однако, если контракт, например `FirstOne`, где-то в своём коде вычисляет [начальное состояние](/ru/book/expressions#initof) другого контракта, например `SecondOne`, такая взаимосвязь отображается на диаграмме:
 
-![Диаграмма зависимостей контракта с одной зависимостью](../../../assets/contract-dependency-diagram-2.png)
+![Диаграмма зависимостей контракта с одной зависимостью](../../../../assets/contract-dependency-diagram-2.png)
 
 Реальным примером такого случая является контракт [`JettonMinter`][code-jetton-minter], который часто называют [Jetton Master](/ru/cookbook/jettons#jetton-master-contract). Часто `JettonMinter` требуется [начальное состояние](/ru/book/expressions#initof) [`JettonWallet`][code-jetton-wallet], поэтому в `JettonMinter` определяется следующая [внутренняя функция](/ru/book/contracts#internal-functions):
 
@@ -142,7 +142,7 @@ inline fun getJettonWalletInit(address: Address): StateInit {
 
 В результате получается следующая диаграмма зависимостей:
 
-![Диаграмма зависимостей контракта JettonMinter](../../../assets/contract-dependency-diagram-3.png)
+![Диаграмма зависимостей контракта JettonMinter](../../../../assets/contract-dependency-diagram-3.png)
 
 [struct]: /ru/book/structs-and-messages#structs
 [message]: /ru/book/structs-and-messages#messages

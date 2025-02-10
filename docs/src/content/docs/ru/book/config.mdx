@@ -151,6 +151,33 @@ import { Badge } from '@astrojs/starlight/components';
 
 :::
 
+#### `masterchain` {#options-masterchain}
+
+`false{:json}` по умолчанию.
+
+Если установлено значение `true{:json}`, включает поддержку [masterchain](/ru/book/masterchain).
+
+```json filename="tact.config.json" {8,14}
+{
+  "projects": [
+    {
+      "name": "some_prefix",
+      "path": "./contract.tact",
+      "output": "./contract_output",
+      "options": {
+        "masterchain": true
+      }
+    },
+    {
+      "name": "ContractUnderBlueprint",
+      "options": {
+        "masterchain": true
+      }
+    }
+  ]
+}
+```
+
 #### `external` {#options-external}
 
 `false{:json}` по умолчанию.
@@ -364,8 +391,8 @@ import { Badge } from '@astrojs/starlight/components';
 | :---------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------ |
 | `"full"{:json}`                     | (по умолчанию) Запускает весь конвейер компиляции и выдает код FunC, BoC и различные служебные файлы, включая обертки для TypeScript. |
 | `"fullWithDecompilation"{:json}`    | Запускает весь конвейер компиляции как `"full"{:json}`, а также декомпилирует созданный двоичный код в формате BoC.                   |
-| ` funcOnly`{:json}\`\`              | Выводит только промежуточный код FunC, предотвращая дальнейшую компиляцию.                                                            |
-| `"checkOnly"{:json}`.               | Выполняет только проверку синтаксиса и типов, предотвращая дальнейшую компиляцию.                                                     |
+| `"funcOnly"{:json}`                 | Выводит только промежуточный код FunC, предотвращая дальнейшую компиляцию.                                                            |
+| `"checkOnly"{:json}`                | Выполняет только проверку синтаксиса и типов, предотвращая дальнейшую компиляцию.                                                     |
 
 В [Blueprint][bp] `mode` всегда установлен на `"full"{:json}` и не может быть перезаписан.
 

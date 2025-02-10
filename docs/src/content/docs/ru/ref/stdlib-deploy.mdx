@@ -1,0 +1,97 @@
+---
+title: "@stdlib/deploy"
+description: Предоставляет единые механизмы для развертываний
+---
+
+Предоставляет единые механизмы для развертываний.
+
+Чтобы использовать эту библиотеку, импортируйте `@stdlib/deploy`:
+
+```tact
+import "@stdlib/deploy";
+```
+
+## Сообщения
+
+### Deploy
+
+```tact
+message Deploy {
+    queryId: Int as uint64;
+}
+```
+
+### DeployOk
+
+```tact
+message DeployOk {
+    queryId: Int as uint64;
+}
+```
+
+### FactoryDeploy
+
+```tact
+message FactoryDeploy {
+    queryId: Int as uint64;
+    cashback: Address;
+}
+```
+
+## Типажи
+
+### Развертываемые
+
+Простейший типаж `Deployable{:tact}`, который предоставляет удобный унифицированный механизм для развертываний за счет реализации простого получателя сообщения [развертывания](#deploy).
+
+Все контракты развертываются путем отправки им сообщения. Хотя для этой цели можно использовать любое сообщение, лучше всего использовать специальное сообщение [развертывания](#deploy).
+
+Это сообщение имеет одно поле `queryId`, предоставленное развертывателем (обычно установленное в ноль). Если развертывание выполнено успешно, контракт ответит сообщением [DeployOk](#deployok) и отобразит тот же `queryId` в ответе.
+
+Исходный код:
+
+```tact
+trait Deployable {
+    receive(deploy: Deploy) {
+        self.notify(DeployOk{queryId: deploy.queryId}.toCell());
+    }
+}
+```
+
+Пример использования:
+
+```tact /Deployable/
+import "@stdlib/deploy";
+
+contract ExampleContract with Deployable {
+    // Теперь у этого контракта есть получатель для сообщения о развертывании
+}
+```
+
+### FactoryDeployable
+
+Типаж `FactoryDeployable{:tact}` предоставляет удобный унифицированный механизм для последовательных развертываний.
+
+Исходный код:
+
+```tact
+trait FactoryDeployable {
+    receive(deploy: FactoryDeploy) {
+        self.forward(deploy.cashback, DeployOk{queryId: deploy.queryId}.toCell(), false, null);
+    }
+}
+```
+
+Пример использования:
+
+```tact /FactoryDeployable/
+import "@stdlib/deploy";
+
+contract ExampleContract with FactoryDeployable {
+    // Теперь у этого контракта есть получатель для сообщения FactoryDeploy
+}
+```
+
+## Источники
+
+- [deploy.tact](https://github.com/tact-lang/tact/blob/61541b7783098e1af669faccd7d2334c10981c72/stdlib/libs/deploy.tact)

@@ -1,0 +1,151 @@
+---
+title: Преобразование типов
+description: Распространенные примеры преобразования между примитивными типами и получения их из составных типов
+---
+
+На этой странице представлены примеры преобразования между [примитивными типами][p] и получения их из [составных типов](/book/types#composite-types).
+
+## `Int` ↔ `String` {#int-string}
+
+### Как преобразовать `String` в `Int`
+
+```tact
+// Определение новой функции-расширения для типа String, которая возвращает значение типа Int
+// Внимание: может дать неожиданные результаты, если String содержит нечисловые символы!
+extends fun toInt(self: String): Int {
+    // Преобразование String в Slice для парсинга
+    let string: Slice = self.asSlice();
+
+    // Переменная для хранения накопленного числа
+    let acc: Int = 0;
+
+    // Цикл до тех пор, пока String не станет пустым
+    while (!string.empty()) {
+        let char: Int = string.loadUint(8); // загрузка 8 бит (1 байт) из Slice
+        acc = (acc * 10) + (char - 48);     // использование таблицы ASCII для получения числового значения
+        // Обратите внимание, что этот подход может дать неожиданные результаты
+        //   если исходный String содержит нечисловые символы!
+    }
+
+    // Получение итогового числа
+    return acc;
+}
+
+fun runMe() {
+    let string: String = "26052021";
+    dump(string.toInt());
+}
+```
+
+### Как преобразовать `Int` в `String`
+
+```tact
+let number: Int = 261119911;
+
+// Преобразование [number] в String
+let numberString: String = number.toString();
+
+// Преобразование [number] в float String,
+//   где переданный аргумент 3 является показателем степени 10^(-3) для итоговой строки с плавающей запятой,
+//   и может быть любым целым числом от 0 до 76 включительно
+let floatString: String = number.toFloatString(3);
+
+// Преобразование [number] в виде монет в строку, удобную для чтения человеком
+let coinsString: String = number.toCoinsString();
+
+dump(numberString); // "261119911"
+dump(floatString);  // "261119.911"
+dump(coinsString);  // "0.261119911"
+```
+
+:::note[Useful [Полезные ссылки:]
+
+  [`Int.toString(){:tact}` в библиотеке Core](/ref/core-strings#inttostring)\
+  [`Int.toFloatString(){:tact}` в библиотеке Core](/ref/core-strings#inttofloatstring)\
+  [`Int.toCoinsString(){:tact}` в библиотеке Core](/ref/core-strings#inttocoinsstring)
+
+:::
+
+## `Struct` или `Message` ↔ `Cell` или `Slice` {#structmessage-cellslice}
+
+### Как преобразовать произвольную `Struct` или `Message` в `Cell` или `Slice`
+
+```tact {19-20, 22-23}
+struct Profit {
+    big: String?;
+    dict: map<Int, Int as uint64>;
+    energy: Int;
+}
+
+message(0x45) Nice {
+    maybeStr: String?;
+}
+
+fun convert() {
+    let st = Profit{
+        big: null,
+        dict: null,
+        energy: 42,
+    };
+    let msg = Nice{ maybeStr: "Message of the day!" };
+
+    st.toCell();
+    msg.toCell();
+
+    st.toCell().asSlice();
+    msg.toCell().asSlice();
+}
+```
+
+:::note[Useful [Полезные ссылки:]
+
+  [`Struct.toCell(){:tact}` в библиотеке Core](/ref/core-cells#structtocell)\
+  [`Message.toCell(){:tact}` в библиотеке Core](/ref/core-cells#messagetocell)
+
+:::
+
+### Как преобразовать `Cell` или `Slice` в произвольную `Struct` или `Message`
+
+```tact {19-20, 22-23}
+struct Profit {
+    big: String?;
+    dict: map<Int, Int as uint64>;
+    energy: Int;
+}
+
+message(0x45) Nice {
+    maybeStr: String?;
+}
+
+fun convert() {
+    let stCell = Profit{
+        big: null,
+        dict: null,
+        energy: 42,
+    }.toCell();
+    let msgCell = Nice{ maybeStr: "Message of the day!" }.toCell();
+
+    Profit.fromCell(stCell);
+    Nice.fromCell(msgCell);
+
+    Profit.fromSlice(stCell.asSlice());
+    Nice.fromSlice(msgCell.asSlice());
+}
+```
+
+:::note[Useful [Полезные ссылки:]
+
+  [`Struct.fromCell(){:tact}` в библиотеке Core](/ref/core-cells#structfromcell)\
+  [`Struct.fromSlice(){:tact}` в библиотеке Core](/ref/core-cells#structfromslice)\
+  [`Message.fromCell(){:tact}`в библиотеке Core](/ref/core-cells#messagefromcell)\
+  [`Message.fromSlice(){:tact}`в библиотеке Core](/ref/core-cells#messagefromslice)
+
+:::
+
+:::tip[Hey [Обратите внимание!]
+
+  Не нашли подходящий пример преобразования типов? Есть крутые идеи реализаций? [Будем рады вашим предложениям!](https://github.com/tact-lang/tact/issues)
+
+:::
+
+[p]: /book/types#primitive-types

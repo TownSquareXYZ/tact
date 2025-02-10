@@ -1,0 +1,603 @@
+---
+title: Расширенные функции
+description: Расширенные, узкоспециализированные или опасные функции из основной библиотеки Tact
+---
+
+import { Badge } from '@astrojs/starlight/components';
+
+Различные узкоспециализированные, опасные или нестабильные функции, которые могут давать неожиданные результаты и предназначены для использования более опытными пользователями.
+
+:::caution
+
+  Будьте осторожны.
+
+:::
+
+## gasConsumed
+
+<Badge text="Доступно с версии Tact 1.5" variant="tip" size="medium"/><p/>
+
+```tact
+fun gasConsumed(): Int;
+```
+
+Возвращает [nanoToncoin][nanotoncoin] [`Int{:tact}`][int] количество [gas][gas], потребленное [TVM][tvm] в текущей транзакции на данный момент. Полученное значение включает стоимость вызова этой функции.
+
+Пример использования:
+
+```tact
+let gas: Int = gasConsumed();
+```
+
+:::note[Useful Полезные ссылки:]
+
+  [Газ в документации TON](https://docs.ton.org/v3/documentation/smart-contracts/transaction-fees/fees#gas)
+
+:::
+
+## myStorageDue
+
+<Badge text="Доступно с версии Tact 1.5" variant="tip" size="medium"/><p/>
+
+```tact
+fun myStorageDue(): Int;
+```
+
+Возвращает сумму [nanoToncoin][nanotoncoin] [`Int{:tact}`][int] накопленной задолженности [платы за хранение][storage-fee]. Плата за хранение вычитается из входящего значения сообщения до расчета нового баланса контракта.
+
+Пример использования:
+
+```tact
+let debt: Int = myStorageDue();
+```
+
+:::note[Useful Полезные ссылки:]
+
+  [Плата за хранение в документации TON][storage-fee]\
+[Расчет платы за хранение в документации TON][storage-fee-calc]
+
+:::
+
+## getStorageFee
+
+<Badge text="Доступно с версии Tact 1.5" variant="tip" size="medium"/><p/>
+
+```tact
+fun getStorageFee(cells: Int, bits: Int, seconds: Int, isMasterchain: Bool): Int;
+```
+
+Вычисляет и возвращает [плату за хранение][storage-fee] в [nanoToncoin][nanotoncoin] [`Int{:tact}`][int] за хранение контракта с заданным количеством `cells` и `bits` в течение определенного количества `seconds`. Использует цены [мастерчейна][masterchain], если `isMasterchain` равно `true{:tact}`, в противном случае цены [бейсчейна][basechain]. Текущие цены берутся из [параметра конфигурации 18 блокчейна TON](https://docs.ton.org/develop/howto/blockchain-configs#param-18).
+
+Обратите внимание, что значения `cell` и `bits` берутся по модулю их максимальных значений плюс $1$. То есть указание значений, превышающих указанные в [пределах состояния счета (`max_acc_state_cells` и `max_acc_state_bits`)](/book/exit-codes#50), даст тот же результат, что и указание точных пределов. Кроме того, убедитесь, что вы учитываете [дедупликацию ячеек с одинаковым хешем][deduplication].
+
+Попытки указать отрицательное число `cell`, `bits` или `seconds` вызывают исключение с [кодом выхода 5](/book/exit-codes#5): `Целое число вне ожидаемого диапазона`.
+
+Пример использования:
+
+```tact
+let fee: Int = getStorageFee(1_000, 1_000, 1_000, false);
+//                           -----  -----  -----  -----
+//                           ↑      ↑      ↑      ↑
+//                           |      |      |      Не находится в мастерчейне,
+//                           |      |      |      но в воркчейне
+//                           |      |      Количество секунд для расчета
+//                           |      |      платы за хранение для
+//                           |      Количество битов в контракте
+//                           Количество ячеек в контракте
+```
+
+:::note[Useful ссылки:]
+
+  [Плата за хранение в документации TON][storage-fee]\
+[Расчет платы за хранение в документации TON][storage-fee-calc]
+
+:::
+
+## getComputeFee
+
+<Badge text="Доступно с версии Tact 1.5" variant="tip" size="medium"/><p/>
+
+```tact
+fun getComputeFee(gasUsed: Int, isMasterchain: Bool): Int;
+```
+
+Вычисляет и возвращает [плату за вычисление][compute-fee] в [nanoToncoin][nanotoncoin] [`Int{:tact}`][int] для транзакции, которая потребила `gasUsed` количество [газа][gas]. Использует цены [мастерчейна][masterchain], если `isMasterchain` равно `true{:tact}`, в противном случае цены [бейсчейна][basechain]. Текущие цены берутся из [параметра конфигурации 20 для мастерчейна и параметра конфигурации 21 для бейсчейна][param-20-21] блокчейна TON.
+
+Когда `gasUsed` меньше определенного порога, называемого [`flat_gas_limit`][param-20-21], существует минимальная цена для оплаты, основанная на значении [`flat_gas_price`][param-20-21]. Чем меньше газа используется ниже этого порога, тем выше будет минимальная цена. См. пример для [`getSimpleComputeFee(){:tact}`](#getsimplecomputefee), чтобы вывести этот порог.
+
+Попытки указать отрицательное значение `gasUsed` вызывают исключение с [кодом выхода 5](/book/exit-codes#5): `Целое число вне ожидаемого диапазона`.
+
+Пример использования:
+
+```tact
+let fee: Int = getComputeFee(1_000, false);
+//                           -----  -----
+//                           ↑      ↑
+//                           |      Не входит в мастерчейн,,
+//                           |      но в бейсчейне
+//                           Количество единиц газа
+//                           потребленных за транзакцию
+```
+
+:::note[Useful Полезные ссылки:]
+
+  [Комиссии за вычисления в документации TON][compute-fee]\
+[Расчет комиссий за вычисления в документации TON][compute-fee-calc]\
+[`getSimpleComputeFee(){:tact}`](#getsimplecomputefee)
+
+:::
+
+## getSimpleComputeFee
+
+<Badge text="Доступно с версии Tact 1.5" variant="tip" size="medium"/><p/>
+
+```tact
+fun getSimpleComputeFee(gasUsed: Int, isMasterchain: Bool): Int;
+```
+
+Аналогично [`getComputeFee(){:tact}`](#getcomputefee), но без [`flat_gas_price`][param-20-21], т. е. без минимальной цены для оплаты, если `gasUsed` меньше определенного порога, называемого [`flat_gas_limit`][param-20-21]. Вычисляет и возвращает только `gasUsed`, умноженное на текущую цену газа.
+
+Попытки указать отрицательное значение `gasUsed` вызывают исключение с [кодом выхода 5](/book/exit-codes#5): `Целое число вне ожидаемого диапазона`.
+
+Пример использования:
+
+```tact
+let fee = getComputeFee(0, false);
+let feeNoFlat = getSimpleComputeFee(0, false);
+let maxFlatPrice = fee - feeNoFlat;
+```
+
+:::note[Useful Полезные ссылки:]
+
+  [Плата за вычисления в документации TON][compute-fee]\
+[Расчет платы за вычисления в документации TON][compute-fee-calc]\
+[`getSimpleComputeFee(){:tact}`](#getsimplecomputefee)
+
+:::
+
+## Context.readForwardFee
+
+```tact
+extends fun readForwardFee(self: Context): Int;
+```
+
+Функция расширения для [`Context{:tact}`](/ref/core-common#context).
+
+Считывает [пересылаемую комиссию](https://docs.ton.org/develop/smart-contracts/guidelines/processing) и возвращает ее как [`Int{:tact}`][int] количество [nanoToncoin][nanotoncoin].
+
+Пример использования:
+
+```tact
+let fwdFee: Int = context().readForwardFee();
+```
+
+:::note[Useful Полезные ссылки:]
+
+  [`getOriginalFwdFee(){:tact}`](#getoriginalfwdfee)
+
+:::
+
+## getForwardfee
+
+<Badge text="Доступно с версии Tact 1.5" variant="tip" size="medium"/><p/>
+
+```tact
+fun getForwardFee(cells: Int, bits: Int, isMasterchain: Bool): Int;
+```
+
+Вычисляет и возвращает [плату за пересылку][forward-fee] в [nanoToncoin][nanotoncoin] [`Int{:tact}`][int] для исходящего сообщения, состоящего из заданного количества `cells` и `bits`. Использует цены [мастерчейна][masterchain], если `isMasterchain` равно `true{:tact}`, в противном случае цены [бейсчейна][basechain]. Текущие цены берутся из [параметра конфигурации 24 для мастерчейна и параметра конфигурации 25 для бейсчейна][param-24-25], блокчейна TON.
+
+Если и исходный, и целевой адреса находятся в [бейсчейне][basechain], то укажите `isMasterchain` как `false{:tact}`. В противном случае укажите `true{:tact}`.
+
+Обратите внимание, что значения `cells` и `bits` берутся по модулю их максимальных значений плюс $1$. То есть указание значений, превышающих указанные в [лимитах состояния аккаунта (`max_msg_cells` и `max_msg_bits`)](/book/exit-codes#50), даст тот же результат, что и указание точных ограничений.
+
+Однако, независимо от значений `cells` и `bits`, эта функция всегда добавляет минимальную цену на основе значения [`lump_price`][param-24-25]. Смотрите пример для [`getSimpleForwardFee(){:tact}`](#getsimpleforwardfee), чтобы вывести его. Кроме того, убедитесь, что вы учитываете [дедупликацию ячеек с одинаковым хешем][deduplication], так как, например, корневая ячейка и ее биты данных не учитываются в комиссии за пересылку и покрываются [`lump_price`][param-24-25].
+
+Попытки указать отрицательное количество `cells` или `bits` вызовут исключение с [кодом выхода 5](/book/exit-codes#5): `Целое число вне ожидаемого диапазона`.
+
+Пример использования:
+
+```tact
+let fee: Int = getForwardFee(1_000, 1_000, false);
+//                           -----  -----  -----
+//                           ↑      ↑      ↑
+//                           |      |      И источник, и назначение
+//                           |      |      не в мастерчейне,
+//                           |      |      но в бейсчейне
+//                           |      Количество бит в сообщении
+//                           Количество ячеек в сообщении
+```
+
+:::note[Useful Полезные ссылки:]
+
+  [Плата за пересылку в документации TON][forward-fee]\
+[Расчет платы за пересылку в документации TON][forward-fee-calc]\
+[Инструкция `CDATASIZEQ` для вычисления количества отдельных ячеек, бит данных и ссылок в `Cell{:tact}`](https://docs.ton.org/v3/documentation/tvm/instructions#F940)\
+[`getSimpleForwardFee(){:tact}`](#getsimpleforwardfee)\
+[`getOriginalFwdFee(){:tact}`](#getoriginalfwdfee)
+
+:::
+
+## getSimpleForwardFee
+
+<Badge text="Доступно с версии Tact 1.5" variant="tip" size="medium"/><p/>
+
+```tact
+fun getSimpleForwardFee(cells: Int, bits: Int, isMasterchain: Bool): Int;
+```
+
+Аналогично [`getForwardFee(){:tact}`](#getforwardfee), но без [`lump_price`][param-24-25], т. е. без минимальной цены для оплаты независимо от количества `cell` или `bits`. Вычисляет и возвращает только `cells`, умноженные на текущую цену ячейки, плюс `bits`, умноженные на текущую цену бита.
+
+Попытки указать отрицательное количество `cell` или `bits` вызывают исключение с [кодом выхода 5](/book/exit-codes#5): `Целое число вне ожидаемого диапазона`.
+
+Пример использования:
+
+```tact
+let fee = getForwardFee(1_000, 1_000, false);
+let feeNoLump = getSimpleForwardFee(1_000, 1_000, false);
+let lumpPrice = fee - feeNoLump;
+```
+
+:::note[Useful Полезные ссылки:]
+
+  [Комиссия за пересылку в  документации TON][forward-fee]\
+[Расчет комиссии за пересылку в документации TON][forward-fee-calc]\
+[`getForwardFee(){:tact}`](#getforwardfee)
+
+:::
+
+## getOriginalFwdFee
+
+<Badge text="Доступно с версии Tact 1.5" variant="tip" size="medium"/><p/>
+
+```tact
+fun getOriginalFwdFee(fwdFee: Int, isMasterchain: Bool): Int;
+```
+
+Вычисляет и возвращает так называемую _оригинальную_ [комиссию за пересылку][forward-fee] в [nanoToncoin][nanotoncoin] [`Int{:tact}`][int] для исходящего сообщения на основе `fwdFee`, полученной из входящего сообщения. Если и исходный, и целевой адреса находятся в [бейсчейне][basechain], то укажите `isMasterchain` как `false{:tact}`. В противном случае укажите `true{:tact}`.
+
+Эта функция полезна, когда исходящее сообщение сильно зависит от структуры входящего сообщения, настолько, что вы не можете полностью предсказать комиссию, используя только [`getForwardFee(){:tact}`](#getforwardfee). Даже если бы вы могли, расчет точной суммы вознаграждения с точностью до уровня [nanoToncoin] [nanotoncoin] может быть очень дорогостоящим, поэтому приближение, получаемое с помощью этой функции, часто бывает достаточно хорошим.
+
+Попытки указать отрицательное значение `fwdFee` вызывают исключение с [кодом выхода 5](/book/exit-codes#5): `Целое число вне ожидаемого диапазона`.
+
+Пример использования:
+
+```tact
+let fwdFee: Int = context().readForwardFee();
+let origFee: Int = getOriginalFwdFee(fee, false);
+```
+
+:::note[Useful Полезные ссылки:]
+
+  [Плата за пересылку в документации TON][forward-fee]\
+[Расчет платы за пересылку в документации TON][forward-fee-calc]\
+[`getForwardFee(){:tact}`](#getforwardfee)\
+[`Context.readForwardFee(){:tact}`](#contextreadforwardfee)
+
+:::
+
+## getConfigParam
+
+```tact
+fun getConfigParam(id: Int): Cell?;
+```
+
+Загружает [параметр конфигурации](https://docs.ton.org/develop/howto/blockchain-configs) блокчейна TON по его номеру `id`.
+
+Примеры использования:
+
+```tact
+// Параметр 0, адрес специального смарт-контракта, в котором хранится конфигурация блокчейна
+let configAddrAsCell: Cell = getConfigParam(0)!!;
+
+// Параметр 18, конфигурация для определения цен на хранение данных
+let dataStorageFeeConfig: Cell = getConfigParam(18)!!;
+```
+
+:::note
+
+  Стандартная библиотека [`@stdlib/config`](/ref/stdlib-config) предоставляет две связанные вспомогательные функции:\
+[`getConfigAddress(){:tact}`](/ref/stdlib-config#getconfigaddress) для получения конфигурации [`Address{:tact}`][p]\
+[`getElectorAddress(){:tact}`](/ref/stdlib-config#getconfigaddress) для получения выборщика [`Address{:tact}`][p]
+
+  Подробнее о других параметрах: [Параметры конфигурации в документации TON](https://docs.ton.org/develop/howto/blockchain-configs).
+
+:::
+
+## acceptMessage
+
+```tact
+fun acceptMessage();
+```
+
+Согласен купить немного газа для завершения текущей транзакции. Это действие необходимо для обработки внешних сообщений, которые не несут никакой ценности (следовательно, нет газа).
+
+Пример использования:
+
+```tact {10}
+contract Timeout {
+    timeout: Int;
+
+    init() {
+        self.timeout = now() + 5 * 60; // через 5 минут
+    }
+
+    external("timeout") {
+        if (now() > self.timeout) {
+            acceptMessage(); // начать принимать внешние сообщения после истечения времени ожидания
+        }
+    }
+}
+```
+
+:::note
+
+  Более подробную информацию см. в разделе: [Эффекты принятия сообщений в документации TON](https://docs.ton.org/develop/smart-contracts/guidelines/accept).
+
+:::
+
+## commit
+
+```tact
+fun commit();
+```
+
+Фиксирует текущее состояние [регистров](https://docs.ton.org/learn/tvm-instructions/tvm-overview#control-registers) `c4` ("постоянные данные") и `c5` ("действия"), так что текущее выполнение считается "успешным" с сохраненными значениями, даже если позже возникнет исключение в фазе вычислений.
+
+Пример использования:
+
+```tact {1}
+commit();  // теперь транзакция считается "успешной"
+throw(42); // и это не приведет к ее сбою
+```
+
+## nativePrepareRandom
+
+```tact
+fun nativePrepareRandom();
+```
+
+Подготавливает генератор случайных чисел с помощью [`nativeRandomizeLt(){:tact}`](#nativerandomizelt). Автоматически вызывается функциями [`randomInt(){:tact}`](/ref/core-random#randomint) и [`random(){:tact}`](/ref/core-random#random).
+
+Пример использования:
+
+```tact
+nativePrepareRandom(); // подготавливает RNG
+// ... делает случайные действия ...
+```
+
+## nativeRandomize
+
+```tact
+fun nativeRandomize(x: Int);
+```
+
+Рандомизирует генератор псевдослучайных чисел с указанным начальным значением `x`.
+
+Пример использования:
+
+```tact
+nativeRandomize();          // теперь случайные числа менее предсказуемы
+let idk: Int = randomInt(); // ???, это случайно!
+```
+
+## nativeRandomizeLt
+
+```tact
+fun nativeRandomizeLt();
+```
+
+Рандомизирует генератор случайных чисел с текущим [логическим временем](https://docs.ton.org/develop/smart-contracts/guidelines/message-delivery-guarantees#what-is-a-logical-time).
+
+Пример использования:
+
+```tact
+nativeRandomizeLt();        // теперь случайные числа непредсказуемы для пользователей,
+                            // но все еще могут быть затронуты валидаторами или коллаторами
+                            // поскольку они определяют начальное число текущего блока.
+let idk: Int = randomInt(); // ???, это случайно!
+```
+
+## nativeRandom
+
+```tact
+fun nativeRandom(): Int;
+```
+
+Генерирует и возвращает $256$-битное случайное число, как [`randomInt(){:tact}`](/ref/core-random#randomint), но не инициализирует генератор случайных чисел с помощью [`nativePrepareRandom(){:tact}`](#nativepreparerandom) заранее.
+
+:::note
+
+  Не используйте эту функцию напрямую и предпочитайте использовать [`randomInt(){:tact}`](/ref/core-random#randomint).
+
+:::
+
+## nativeRandomInterval
+
+```tact
+fun nativeRandomInterval(max: Int): Int;
+```
+
+Генерирует и возвращает $256$-битное случайное число в диапазоне от $0$ до `max`, как [`random(){:tact}`](/ref/core-random#random), но не инициализирует генератор случайных чисел с помощью [`nativePrepareRandom(){:tact}`](#nativepreparerandom) заранее.
+
+:::note
+
+  Не используйте эту функцию напрямую, а вместо этого используйте [`random(){:tact}`](/ref/core-random#random).
+
+:::
+
+## nativeSendMessage
+
+```tact
+fun nativeSendMessage(cell: Cell, mode: Int);
+```
+
+[Помещает сообщение](/book/send#outbound-message-processing) в очередь для отправки, указав полную `cell` и [`mode` сообщения](/book/message-mode).
+
+Попытки поставить в очередь сообщения стоимостью более $255$ приводят к возникновению исключения с [кодом выхода 33](/book/exit-codes#33): `Список действий слишком длинный`.
+
+:::note
+
+  Предпочитайте использовать гораздо более распространенную и удобную функцию [`send(){:tact}`](/ref/core-common#send), если только у вас нет сложной логики, которую нельзя выразить иным образом.
+
+:::
+
+## nativeReserve
+
+```tact
+fun nativeReserve(amount: Int, mode: Int);
+```
+
+Вызывает собственную функцию `raw_reserve` с указанным объемом и режимом. `raw_reserve` — это функция, которая создает выходное действие для резервирования определенного количества [nanoToncoin][nanotoncoin] из остатка на аккаунте.
+
+Она имеет следующую подпись в FunC:
+
+```func
+raw_reserve(int amount, int mode) impure asm "RAWRESERVE";
+```
+
+Функция принимает два аргумента:
+
+- `amount`: Количество [nanoToncoin][nanotoncoin] для резервирования.
+- `mode`: Определяет режим резервирования.
+
+Функция `raw_reserve` примерно эквивалентна созданию исходящего сообщения, переносящего указанное `amount` [nanoToncoin][nanotoncoin] (или `b` $-$ `amount` [nanoToncoin][nanotoncoin], где `b` — оставшийся баланс) самому себе. Это гарантирует, что последующие выходные действия не смогут потратить больше денег, чем остаток.
+
+Можно использовать необработанные значения [`Int{:tact}`][int] и вручную указывать их для `mode`, но для вашего удобства есть набор констант, которые вы можете использовать для простого построения составного `mode`. Ознакомьтесь со следующими таблицами для получения дополнительной информации о базовых режимах и необязательных флагах.
+
+:::caution
+
+  В настоящее время `amount` должно быть неотрицательным целым числом, а `mode` должно быть в диапазоне $0..31$ включительно.
+
+  Кроме того, попытки поставить в очередь бронирования на сумму более $255$ за одну транзакцию вызывают исключение с [кодом выхода 33](/book/exit-codes#33): `Список действий слишком длинный`.
+
+:::
+
+### Базовые режимы {#nativereserve-base-modes}
+
+Результирующее значение `mode` может иметь следующие базовые режимы:
+
+| Значение режима | Имя константы                 | Описание                                                               |
+| --------------: | :---------------------------- | ---------------------------------------------------------------------- |
+|      $0$        | `ReserveExact{:tact}`         | Резервирует ровно указанное `amount` [nanoToncoin][nanotoncoin].       |
+|      $1$        | `ReserveAllExcept{:tact}`     | Резервирует все, кроме указанного `amount` [nanoToncoin][nanotoncoin]. |
+|      $2$        | `ReserveAtMost{:tact}`        | Резервирует не более указанного `amount` [nanoToncoin][nanotoncoin].   |
+
+### Необязательные флаги {#nativereserve-optional-flags}
+
+Кроме того, в результирующий `mode` могут быть добавлены следующие необязательные флаги:
+
+| Значение флага | Имя константы                      | Описание                                                                                                           |
+| -------------: | :--------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+|     $+4$       | `ReserveAddOriginalBalance{:tact}` | Увеличивает `amount` на исходный баланс текущего аккаунта (до фазы вычислений), включая все дополнительные валюты. |
+|     $+8$       | `ReserveInvertSign{:tact}`         | Отменяет значение `amount` перед выполнением резервирования.                                                       |
+|     $+16$      | `ReserveBounceIfActionFail{:tact}` | Отменяет транзакцию, если резервирование не удалось.                                                               |
+
+### Объединение режимов с флагами {#nativereserve-combining-modes-with-flags}
+
+Чтобы сделать значение [`Int{:tact}`][int] для параметра `mode`, вам просто нужно объединить базовые режимы с дополнительными флагами, применив операцию [побитовое ИЛИ](/book/operators#binary-bitwise-or):
+
+```tact
+nativeReserve(ton("0.1"), ReserveExact | ReserveBounceIfActionFail);
+//            ----------  ----------------------------------------
+//            ↑           ↑
+//            |           режим, который отклонит транзакцию, если точное резервирование не удастся
+//            количество nanoToncoin для резервирования
+```
+
+## parseStdAddress
+
+<Badge text="Доступно с версии Tact 1.5" variant="tip" size="medium"/><p/>
+
+```tact
+fun parseStdAddress(slice: Slice): StdAddress;
+```
+
+Преобразует [`Slice{:tact}`][slice], содержащий адрес, в `StdAddress{:tact}` [структуре][s] и возвращает его. `StdAddress{:tact}` — это встроенная [структура][s], которая состоит из:
+
+| Поле        | Тип                             | Описание                                                                    |
+| :---------- | :------------------------------ | :-------------------------------------------------------------------------- |
+| `workchain` | [`Int as int8{:tact}`][int]     | Идентификатор воркчейна адреса, обычно $0$ (бейсчейн) или $-1$ (мастерчейн) |
+| `address`   | [`Int как uint256{:tact}`][int] | Адрес в указанном `workchain`                                               |
+
+Попытки передать [`Slice{:tact}`][slice] с расположением, отличным от `StdAddress{:tact}`, или загрузить больше данных, чем задано[`Slice{:tact}`][slice], содержит исключение с [кодом выхода 9](/book/exit-codes#9): `Переполнение ячейки`.
+
+Пример использования:
+
+```tact
+let addr = address("EQDtFpEwcFAEcRe5mLVh2N6C0x-_hJEM7W61_JLnSF74p4q2");
+let parsedAddr = parseStdAddress(addr.asSlice());
+
+parsedAddr.workchain; // 0
+parsedAddr.address;   // 107...много цифр...287
+
+// Использование функции newAddress() с содержимым StdAddress даст начальный адрес::
+let addr2: Address = newAddress(parsedAddr.workchain, parsedAddr.address);
+addr2 == addr; // true
+```
+
+:::note
+
+  Для анализа адресов переменной длины см. функцию [`parseVarAddress(){:tact}`](#parsevaraddress).
+
+:::
+
+## parseVarAddress
+
+<Badge text="Доступно с версии Tact 1.5" variant="tip" size="medium"/><p/>
+
+```tact
+fun parseVarAddress(slice: Slice): VarAddress;
+```
+
+Преобразует [`Slice{:tact}`][slice], содержащий адрес переменной длины, в `VarAddress{:tact}` [структуре][s] и возвращает его. `VarAddress{:tact}` — это встроенная [структура][s], состоящая из:
+
+| Поле        | Тип                            | Описание                                        |
+| :---------- | :----------------------------- | :---------------------------------------------- |
+| `workchain` | [`Int as int32{:tact}`][int]   | Идентификатор воркчейна адреса переменной длины |
+| `адрес`     | [\``Slice{:tact}`][slice]      | Адрес в указанном `workchain`                   |
+
+Попытки передать [`Slice{:tact}`][slice] с макетом, отличным от `VarAddress{:tact}`, или загрузить больше данных, чем задано в [`Slice{:tact}`][slice], вызывают исключение с [кодом выхода 9](/book/exit-codes#9): `Переполнение ячейки`.
+
+Пример использования:
+
+```tact
+let varAddrSlice = beginCell()
+    .storeUint(6, 3)     // распознать следующее как VarAddress
+    .storeUint(123, 9)   // сделать адрес занимающим 123 бита
+    .storeUint(234, 32)  // указать идентификатор воркчейна 234
+    .storeUint(345, 123) // указать адрес 345
+    .asSlice();
+let parsedVarAddr = parseVarAddress(varAddrSlice);
+
+parsedVarAddr.workchain;             // 234
+parsedVarAddr.address;               // CS{Cell{002...2b3} бит: 44..167; refs: 0..0}
+parsedVarAddr.address.loadUint(123); // 345
+```
+
+:::caution
+
+  Адреса переменной длины предназначены для будущих расширений, и хотя валидаторы должны быть готовы принимать их во входящих сообщениях, стандартные (неизменяемые) адреса используются везде, где это возможно.
+
+:::
+
+[p]: /book/types#primitive-types
+[bool]: /book/types#booleans
+[int]: /book/integers
+[кусочек]: /book/cells#slices
+[с]: /book/structs-and-messages#structs
+[шедевр]: https://docs.ton.org/v3/documentation/smart-contracts/shards/shards-intro#masterchain
+[хеш ячейки]: /ref/core-cell#cellhash
+[nanotoncoin]: /book/integers#nanotoncoin
+[tvm]: https://docs.ton.org/learn/tvm-instructions/tvm-overview
+[basechain]: https://docs.ton.org/v3/concepts/ton-blockchain/smart-contract-addresses#address-components
+[дедупликация]: https://docs.ton.org/v3/documentation/data-formats/tlb/library-cells
+[сбор за хранилище]: https://docs.ton.org/v3/documentation/smart-contracts/transaction-fees/fees-low-level#storage-fee
+[storage-fee-calc]: https://docs.ton.org/v3/guidelines/smart-contracts/fee-calculation#storage-fee
+[газ]: https://docs.ton.org/v3/documentation/smart-contracts/transaction-fees/fees#gas
+[плата за вычисление]: https://docs.ton.org/v3/documentation/smart-contracts/transaction-fees/fees-low-level#computation-fees
+[вычислительная калькуляция]: https://docs.ton.org/v3/guidelines/smart-contracts/fee-calculation#computation-fee
+[param-20-21]: https://docs.ton.org/v3/documentation/network/configs/blockchain-configs#param-20-and-21
+[плата за переезд]: https://docs.ton.org/v3/documentation/smart-contracts/transaction-fees/forward-fees
+[вперед-колыбель]: https://docs.ton.org/v3/guidelines/smart-contracts/fee-calculation#forward-fee
+[param-24-25]: https://docs.ton.org/v3/documentation/network/configs/blockchain-configs#param-24-and-25

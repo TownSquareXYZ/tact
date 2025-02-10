@@ -1,0 +1,320 @@
+---
+title: Структуры и сообщения
+description: Структуры могут определять сложные типы данных, которые содержат несколько полей разных типов, в то время как сообщения также имеют 32-битный заголовок и удобны для приема и отправки тел сообщений на блокчейне TON
+---
+
+import { Badge } from '@astrojs/starlight/components';
+
+Tact поддерживает ряд [примитивных типов данных](/book/types#primitive-types), которые адаптированы для использования в смарт-контрактах. Однако использование отдельных средств хранения часто становится громоздким, поэтому существуют [структуры](#structs) и [сообщения](#messages), которые позволяют объединять типы вместе.
+
+После успешной компиляции Tact создает [отчет о компиляции](/book/compile), в котором содержатся все объявленные [структуры](#structs) и [сообщения](#messages), включая те, что из стандартной библиотеки Core. Подробную информацию см. в разделе [Структуры отчета о компиляции](/book/compile#structures).
+
+:::caution
+
+  **Предупреждение**: в настоящее время циклические типы **не** возможны. Это означает, что структура/сообщение **A** не может иметь поле стурктуры/сообщения **B**, которое имеет поле структуры/сообщения **A**.
+
+  Поэтому следующий код **не** скомпилируется:
+
+```tact
+struct A {
+    circularFieldA: B;
+}
+
+struct B {
+    impossibleFieldB: A;
+}
+```
+
+:::
+
+## Структуры
+
+Структуры могут определять сложные типы данных, которые содержат несколько полей разных типов. Они также могут быть вложенными.
+
+```tact
+struct Point {
+    x: Int as int64;
+    y: Int as int64;
+}
+
+struct Line {
+    start: Point;
+    end: Point;
+}
+```
+
+Структуры также могут содержать поля по умолчанию и определять поля [необязательных типов](/book/optionals). Это может быть полезно, если у вас много полей, но вы не хотите постоянно указывать для них общие значения в [новых экземплярах](#instantiate).
+
+```tact
+struct Params {
+    name: String = "Satoshi"; // значение по умолчанию
+
+    age: Int?; // поле с необязательным типом Int?
+               // и значением по умолчанию null
+
+    point: Point; // вложенные структуры
+}
+```
+
+Структуры также полезны в качестве значений, возвращаемых получателями или другими внутренними функциями. Они эффективно позволяют одному получателю возвращать несколько значений.
+
+```tact
+contract StructsShowcase {
+    params: Params; // Структура как переменная постоянного состояния контракта
+
+    init() {
+        self.params = Params{
+            point: Point{
+                x: 4,
+                y: 2,
+            },
+        };
+    }
+
+    get fun params(): Params {
+        return self.params;
+    }
+}
+```
+
+Обратите внимание, что последняя точка с запятой `;` в объявлении структуры необязательна и может быть опущена:
+
+```tact
+struct Mad { ness: Bool }
+
+struct MoviesToWatch {
+    wolverine: String;
+    redFunnyGuy: String
+}
+```
+
+Порядок расположения полей имеет значение, поскольку он соответствует результирующему расположению памяти в [TL-B схемах](https://docs.ton.org/develop/data-formats/tl-b-language). Однако, в отличие от некоторых языков с ручным управлением памятью, в Tact нет отступов между полями.
+
+## Сообщения
+
+Сообщения могут содержать [структуры](#structs):
+
+```tact
+struct Point {
+    x: Int;
+    y: Int;
+}
+
+message Add {
+    point: Point; // содержит структуру Point
+}
+```
+
+### Коды операций сообщения
+
+Сообщения — это почти то же самое, что и [структуры](#structs), с той лишь разницей, что у сообщений в сериализации есть 32-битный целочисленный заголовок, содержащий их уникальный числовой идентификатор, обычно называемый _opcode_ (код операции). Это позволяет использовать сообщения с [получателями](/book/receive), поскольку контракт может различать разные типы сообщений на основе этого идентификатора.
+
+Tact автоматически генерирует эти уникальные идентификаторы (коды операций) для каждого полученного сообщения, которые можно увидеть в [разделе Структуры отчета о компиляции](/book/compile#structures).
+
+Кроме того, коды операций можно перезаписывать вручную:
+
+```tact
+// Это сообщение перезаписывает свой уникальный идентификатор (код операции) на 0x7362d09c
+message(0x7362d09c) TokenNotification {
+    forwardPayload: Slice as remaining;
+}
+```
+
+Это полезно в случаях, когда вы хотите обрабатывать определенные коды операций определенного смарт-контракта, например, [стандарт жетона](https://github.com/ton-blockchain/TEPs/blob/master/text/0074-jettons-standard.md). Краткий список кодов операций, которые может обрабатывать этот контракт, [приведен здесь в FunC](https://github.com/ton-blockchain/token-contract/blob/main/ft/op-codes.fc). Они служат интерфейсом для смарт-контракта.
+
+<Badge text="Доступно с версии Tact 1.6 (еще не выпущено)" option="tip" size="small"/> Код операции сообщения может быть любым выражением [времени компиляции](/ref/core-comptime), результатом вычисления которого является положительное $32$-битное целое число, поэтому следующее также допустимо:
+
+```tact
+// Это сообщение перезаписывает свой уникальный идентификатор (код операции) на 898001897,
+// что является оценённым целочисленным значением указанного выражения времени компиляции
+message((crc32("Tact") + 42) & 0xFFFF_FFFF) MsgWithExprOpcode {
+    field: Int as uint4;
+}
+```
+
+:::note
+
+  Более подробную информацию об этом см.:\
+[Преобразование полученных сообщений в операции `op`](/book/func#convert-received-messages-to-op-operations)\
+[Внутренняя структура тела сообщения в документации  TON](https://docs.ton.org/develop/smart-contracts/guidelines/internal-messages#internal-message-body)\
+[Сообщения о реализации жетонов в Tact](https://github.com/howardpen9/jetton-implementation-in-tact/blob/9eee917877a92af218002874a9f2bd3f9c619229/sources/messages.tact)\
+[Стандарт жетонов в Tact на примере Tact-by-Example](https://tact-by-example.org/07-jetton-standard)
+
+:::
+
+## Операции
+
+### Создание экземпляра
+
+Создание экземпляров [структур](#structs) и [сообщений](#messages) напоминает [вызовы функций](/book/expressions#static-function-call), но вместо скобок `(){:tact}` необходимо указать аргументы в фигурных скобках `{}{:tact}`:
+
+```tact
+struct StA {
+    field1: Int;
+    field2: Int;
+}
+
+message MsgB {
+    field1: String;
+    field2: String;
+}
+
+fun example() {
+    // Экземпляр структуры StA
+    StA{
+        field1: 42,
+        field2: 68 + 1, //  запятая в конце допустима
+    };
+
+    // Экземпляр сообщения MsgB
+    MsgB{
+        field1: "May the 4th",
+        field2: "be with you!", // запятая в конце допустима
+    };
+}
+```
+
+Когда имя переменной или константы, назначенной полю, совпадает с именем такого поля, Tact предоставляет удобное синтаксическое сокращение, иногда называемое каламбуром поля. С ним вам не придется вводить больше, чем необходимо:
+
+```tact
+struct PopQuiz {
+    vogonsCount: Int;
+    nicestNumber: Int;
+}
+
+fun example() {
+    // Давайте введем пару переменных
+    let vogonsCount: Int = 42;
+    let nicestNumber: Int = 68 + 1;
+
+    // ы можете создать экземпляр Struct как обычно и назначить переменные полям,
+    // о иногда это немного повторяющийся и утомительный процесс
+    PopQuiz{ vogonsCount: vogonsCount, nicestNumber: nicestNumber };
+
+    // Давайте использовать каламбуры полей и меньше печатать,
+    // потому что наши имена переменных совпадают с именами полей
+    PopQuiz{
+        vogonsCount,
+        nicestNumber, // здесь также допускается запятая в конце!
+    };
+}
+```
+
+:::note
+
+  Поскольку создание экземпляра - это выражение в Tact, оно также описано на соответствующей странице: [выражение для создания экземпляра](/book/expressions#instantiation).
+
+:::
+
+### Преобразование в `Cell`, `.toCell()` {#tocell}
+
+Можно преобразовать произвольную [структуру](#structs) или [сообщение](#messages) в тип [`Cell{:tact}`][cell], используя `.toCell(){:tact}` [функцию расширения](/book/functions#extension-function):
+
+```tact
+struct Big {
+    f1: Int;
+    f2: Int;
+    f3: Int;
+    f4: Int;
+    f5: Int;
+    f6: Int;
+}
+
+fun conversionFun() {
+    dump(Big{
+        f1: 10000000000, f2: 10000000000, f3: 10000000000,
+        f4: 10000000000, f5: 10000000000, f6: 10000000000,
+    }.toCell()); // x{...ячейка со ссылками...}
+}
+```
+
+:::note
+
+  См. эти функции расширения в руководствах:\
+[`Struct.toCell(){:tact}`](/ref/core-cells#structtocell)\
+[`Message.toCell(){:tact}`](/ref/core-cells#messagetocell)
+
+:::
+
+### Получение из `Cell` или `Slice`, `.fromCell()` и `.fromSlice()` {#fromcellslice}
+
+Вместо ручного анализа [`Cell{:tact}`][cell] или [`Slice{:tact}`][slice] с помощью ряда соответствующих вызовов функций `.loadSomething(){:tact}`, можно использовать `.fromCell(){:tact}` и `.fromSlice(){:tact}` [функции расширения](/book/functions#extension-function) для преобразования предоставленных [`Cell{:tact}`][cell] или [`Slice{:tact}`][slice] в необходимые [структуры](#structs) или [сообщения](#messages).
+
+Эти функции расширения только пытаются проанализировать [`Cell{:tact}`][cell] или [`Slice{:tact}`][slice]соответствующую структуре вашей [структуры](#structs) или [сообщения](#messages). В случае, если макеты не совпадают, могут возникать различные исключения — убедитесь, что ваш код заключен в блоки [`try...catch{:tact}`](/book/statements#try-catch), чтобы предотвратить непредвиденные результаты.
+
+```tact
+struct Fizz { foo: Int }
+message(100) Buzz { bar: Int }
+
+fun constructThenParse() {
+    let fizzCell = Fizz{foo: 42}.toCell();
+    let buzzCell = Buzz{bar: 27}.toCell();
+
+    let parsedFizz: Fizz = Fizz.fromCell(fizzCell);
+    let parsedBuzz: Buzz = Buzz.fromCell(buzzCell);
+}
+```
+
+:::note
+
+  См. эти функции расширения в руководствах:\
+[`Struct.fromCell(){:tact}`][st-fc]\
+[`Struct.fromSlice(){:tact}`][st-fs]\
+[`Message.fromCell(){:tact}`][msg-fc]\
+[`Message.fromSlice(){:tact}`][msg-fs]
+
+:::
+
+### Законы преобразования
+
+Всякий раз, когда выполняется преобразование между [`Cell{:tact}`][cell]/[`Slice{:tact}`][slice] и [структуры](#structs)/[сообщения](#messages) с помощью функций `.toCell(){:tact}` и `.fromCell(){:tact}`, выполняются следующие законы:
+
+- Для любого экземпляра типа [Struct](#structs)/[Message](#messages), вызов `.toCell(){:tact}` на нем, а затем применение `Struct.fromCell(){:tact}` (или `Message.fromCell(){:tact}`) к результату возвращает копию исходного экземпляра:
+
+```tact {8-9,13-14}
+struct ArbitraryStruct {}
+message(0x2A) ArbitraryMessage {}
+
+fun lawOne() {
+    let structInst = ArbitraryStruct{};
+    let messageInst = ArbitraryMessage{};
+
+    ArbitraryStruct.fromCell(structInst.toCell());   // = structInst
+    ArbitraryMessage.fromCell(messageInst.toCell()); // = messageInst
+
+    // То же самое и для Slices, с использованием .toCell().asSlice() и .fromSlice()
+
+    ArbitraryStruct.fromSlice(structInst.toCell().asSlice());   // = structInst
+    ArbitraryMessage.fromSlice(messageInst.toCell().asSlice()); // = messageInst
+}
+```
+
+- Для любой [`Cell{:tact}`][cell] с тем же [TL-B](https://docs.ton.org/develop/data-formats/tl-b-language) макетом, что и заданная [структура](#structs)/[сообщение](#messages), вызов `Struct.fromCell(){:tact}` (или `Message.fromCell(){:tact}`) для нее, а затем преобразование результата в [`Cell{:tact}`][cell] через `.toCell(){:tact}` даст копию исходной [`Cell{:tact}`][cell]:
+
+```tact {9-10,15-16}
+struct ArbitraryStruct { val: Int as uint32 }
+message(0x2A) ArbitraryMessage {}
+
+fun lawTwo() {
+    // Используя 32 бита для хранения 42 только для того, чтобы этот cellInst мог
+    // повторно использоваться для работы как с ArbitraryStruct так и с ArbitraryMessage
+    let cellInst = beginCell().storeUint(42, 32).endCell();
+
+    ArbitraryStruct.fromCell(cellInst).toCell();  // = cellInst
+    ArbitraryMessage.fromCell(cellInst).toCell(); // = cellInst
+
+    // То же самое касается Slices с .fromSlice() и .toCell().asSlice()
+    let sliceInst = cellInst.asSlice();
+
+    ArbitraryStruct.fromSlice(sliceInst).toCell().asSlice();  // = sliceInst
+    ArbitraryMessage.fromSlice(sliceInst).toCell().asSlice(); // = sliceInst
+}
+```
+
+[st-fc]: /ref/core-cells#structfromcell
+[st-fs]: /ref/core-cells#structfromslice
+[msg-fc]: /ref/core-cells#messagefromcell
+[msg-fs]: /ref/core-cells#messagefromslice
+[p]: /book/types#primitive-types
+[клетка]: /book/cells#cells
+[нарезать]: /book/cells#slices

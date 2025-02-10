@@ -120,6 +120,10 @@ export default defineConfig({
 					label: '简体中文',
 					lang: 'zh-CN',
 				},
+				ru: {
+					label: 'Русский',
+					lang: 'ru',
+				},
 			},
 			// In place of countless meta.js files in old docs:
 			sidebar: [

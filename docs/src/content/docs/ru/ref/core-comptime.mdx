@@ -1,0 +1,192 @@
+---
+title: Время компиляции
+description: Различные глобальные функции времени компиляции из базовой библиотеки Tac
+---
+
+import { Badge } from '@astrojs/starlight/components';
+
+На этой странице перечислены все встроенные [глобальные статические функции](/book/functions#global-static-functions), которые оцениваются во время создания проекта Tact и не могут работать с непостоянными данными во время выполнения. Эти функции обычно называются "функциями времени компиляции" или сокращенно _comptime_ функциями.
+
+## address
+
+```tact
+fun address(s: String): Address;
+```
+
+Функция времени компиляции, которая преобразует [`String{:tact}`][p] с адресом в тип [`Address{:tact}`][p] и встраивает его в контракт.
+
+Пример использования:
+
+```tact
+contract Example {
+    // Постоянные состояния переменных
+    addr: Address =
+        address("EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N"); // работает во время компиляции!
+}
+```
+
+:::note
+
+  `address("...Address..."){:tact}` в Tact эквивалентен `"...Address..."a{:func}` в FunC.
+
+:::
+
+## cell
+
+```tact
+fun cell(bocBase64: String): Cell;
+```
+
+Функция времени компиляции, которая встраивает кодированный в base64 [BoC][boc] `bocBase64` как [`Cell{:tact}`][cell] в контракт.
+
+Примеры использования:
+
+```tact
+contract Example {
+    // Постоянные состояния переменных 
+    stored: Cell =
+        // Пакет инициализации для Wallet V3R1 как BoC в кодировке base64
+        cell("te6cckEBAQEAYgAAwP8AIN0gggFMl7qXMO1E0NcLH+Ck8mCDCNcYINMf0x/TH/gjE7vyY+1E0NMf0x/T/9FRMrryoVFEuvKiBPkBVBBV+RDyo/gAkyDXSpbTB9QC+wDo0QGkyMsfyx/L/8ntVD++buA="); // работает во время компиляции!
+}
+```
+
+## slice
+
+<Badge text="Доступно с Tact 1.5" variant="tip" size="medium"/><p/>
+
+```tact
+fun slice(bocBase64: String): Slice;
+```
+
+Функция времени компиляции, которая встраивает закодированный в base64 [BoC][boc] `bocBase64` как [`Slice{:tact}`][slice] в контракт.
+
+Примеры использования:
+
+```tact
+contract Example {
+    // Постоянные состояния переменных 
+    stored: Slice =
+        // Работает во время компиляции!
+        slice("te6cckEBAQEADgAAGEhlbGxvIHdvcmxkIXgtxbw="); // Hello world!
+}
+```
+
+## rawSlice
+
+<Badge text="Доступно с Tact 1.5" variant="tip" size="medium"/><p/>
+
+```tact
+fun rawSlice(hex: String): Slice;
+```
+
+Функция времени компиляции, которая преобразует `hex` [`String{:tact}`][p] с закодированным в hex и необязательно дополненным битами содержимым, как [`Slice{:tact}`][slice] в контракт.
+
+Содержимое дополняется битами, если в самом конце [`String{:tact}`][p] есть подчеркивание `_`. Дополнение удаляет все конечные нули и последний бит $1$ перед ними:
+
+```tact
+// Не дополняется битами
+rawSlice("4a").loadUint(8); // 74, или 1001010 в двоичном формате
+
+// Дополняется битами
+rawSlice("4a_").loadUint(6); // 18, или 10010 в двоичном формате
+```
+
+Обратите внимание, что эта функция ограничена и позволяет указать только до $1023$ бит.
+
+Пример использования:
+
+```tact
+contract Example {
+    // Постоянные состояния переменных 
+    stored: Slice =
+        rawSlice("000DEADBEEF000");  // CS{Cell{03f...430} bits: 588..644; refs: 1..1}
+    bitPadded: Slice =
+        rawSlice("000DEADBEEF000_"); // CS{Cell{03f...e14} bits: 36..79; refs: 0..0}
+}
+```
+
+:::note
+
+  `rawSlice("...Hex содержимое..."){:tact}` в Tact эквивалентно `"...Hex содержимому..."s{:func}` в FunC.
+
+:::
+
+## ascii
+
+<Badge text="Доступно с Tact 1.5" variant="tip" size="medium"/><p/>
+
+```tact
+fun ascii(str: String): Int;
+```
+
+Функция времени компиляции, которая объединяет шестнадцатеричные значения символов в `str` в один и встраивает полученный [`Int{:tact}`][int] в контракт. Работает только для строк, занимающих до $32$ байт, что позволяет представлять до $32$ [кодов ASCII](https://en.wikipedia.org/wiki/ASCII#Control_code_chart) или до $8$ $4$-байт [кодовых точек Unicode](https://en.wikipedia.org/wiki/List_of_Unicode_characters).
+
+Пример использования:
+
+```tact
+contract Example {
+    // Постоянные состояния переменных
+    a: Int = ascii("a");            // 97 or 0x61, one byte in total
+    zap: Int = ascii("⚡");         // 14850721 или 0xE29AA1, всего 3 байта
+    doubleZap: Int = ascii("⚡⚡"); // 249153768823457 или 0xE29AA1E29AA1, всего 6 байт
+}
+```
+
+:::note
+
+  `ascii("...Содержимое строки..."){:tact}` в Tact эквивалентно `"...Содержимому строки..."u{:func}` в FunC.
+
+:::
+
+## crc32
+
+<Badge text="Доступно с Tact 1.5" variant="tip" size="medium"/><p/>
+
+```tact
+fun crc32(str: String): Int;
+```
+
+Функция времени компиляции, которая вычисляет контрольную сумму с использованием алгоритма [CRC-32](https://en.wikipedia.org/wiki/Cyclic_redundancy_check) и встраивает полученное значение [`Int{:tact}`][int] в контракт.
+
+Пример использования:
+
+```tact
+contract Example {
+    // Постоянные состояния переменных 
+    checksum: Int = crc32("000DEADBEEF000"); // 1821923098
+}
+```
+
+:::note
+
+  `crc32("...Содержимое строки..."){:tact}` в Tact эквивалентно `"...Содержимому строки..."c{:func}` в FunC.
+
+:::
+
+## ton
+
+```tact
+fun ton(value: String): Int;
+```
+
+Функция времени компиляции, которая преобразует заданное значение Toncoin из удобного для восприятия формата [`String{:tact}`][p] в формат [nanoToncoin](/book/integers#nanotoncoin) [`Int{:tact}`][int].
+
+Пример использования:
+
+```tact
+contract Example {
+    // Постоянные состояния переменных 
+    one: Int = ton("1");            // один Toncoin, что эквивалентно 10^9 nanoToncoin
+    pointOne: Int = ton("0.1");     // 0.1 Toncoin, что эквивалентно 10^8 nanoToncoin
+    nano: Int = ton("0.000000001"); // 10^-9 Toncoins, что эквивалентно 1 nanoToncoin
+                                    // работает во время компиляции!!
+}
+```
+
+[p]: /book/types#primitive-types
+[bool]: /book/types#booleans
+[int]: /book/integers
+[клетка]: /book/cells#cells
+[кусочек]: /book/cells#slices
+[boc]: /book/cells#cells-boc
+[крк]: https://en.wikipedia.org/wiki/Cyclic_redundancy_check

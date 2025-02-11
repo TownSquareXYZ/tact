@@ -3,6 +3,8 @@ title: Выражения
 description: На этой странице перечислены все выражения в Tact
 ---
 
+import { Badge } from '@astrojs/starlight/components';
+
 Каждый оператор в Tact формирует выражение, но есть гораздо больше возможностей для раскрытия, поскольку Tact предлагает широкий спектр вариантов выражения на выбор.
 
 :::note
@@ -251,6 +253,8 @@ contract ExampleContract {
 ```
 
 ## `initOf`
+
+<Badge text="Gas-expensive" title="Использует 500 единиц газа или более" variant="danger" size="medium"/><p/>
 
 Выражение `initOf{:tact}` вычисляет начальное состояние, т. е. `StateInit{:tact}` [контракта](/book/contracts):
 

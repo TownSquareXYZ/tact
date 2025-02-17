@@ -17,9 +17,9 @@ sidebar:
 
 在进一步介绍之前，请自己熟悉以下内容：
 
-- [接收消息](/book/receive/)
-- [发送消息](/book/send/)
-- [可替代代币（Jettons）](/cookbook/jettons/)
+- [接收消息](/zh-cn/book/receive/)
+- [发送消息](/zh-cn/book/send/)
+- [可替代代币（Jettons）](/zh-cn/cookbook/jettons/)
 - [STONFi 文档：术语表](https://docs.ston.fi/docs/user-section/glossary)
 - [STON.fi文档：架构](https://docs.ston.fi/docs/developer-section/architecture)
 
@@ -27,7 +27,7 @@ sidebar:
 
 在 [STON.fi 文档](https://docs.ston.fi/docs/developer-section/api-reference-v2/example_swap)中阅读更多关于 Swaps 的信息。
 
-Swaps使用 `StonfiSwap{:tact}` [Message][message] 和 \`SwapAdditionalData{:tact} [Struct][struct]
+Swaps使用 `StonfiSwap{:tact}` [Message][message] 和 `SwapAdditionalData{:tact}` [Struct][struct]
 
 ```tact
 /// https://docs.ston.fi/docs/developer-section/api-reference-v2/router#swap-0x6664de2a
@@ -85,7 +85,7 @@ struct SwapAdditionalData {
 }
 ```
 
-[STON.fi SDK](https://github.com/ston-fi/sdk) 定义了一些[常量用于处理费用](https://github.com/ston-fi/sdk/blob/786ece758794bd5c575db8b38f5e5de19f43f0d1/pubes/sdk/src/contracts/dex/v2_1/router/BaseRouterV2_1.s)。 请注意这些是硬编码值，但最佳做法是[用当前配置参数动态计算费用](https://docs.ton.org/v3/guidelines/smart-contracts/fee-calculation)
+[STON.fi SDK](https://github.com/ston-fi/sdk) 定义了一些[常量用于处理费用](https://github.com/ston-fi/sdk/blob/786ece758794bd5c575db8b38f5e5de19f43f0d1/pubes/sdk/src/contracts/dex/v2_1/router/BaseRouterV2_1.s)。 请注意这些是硬编码值，但最佳做法是[用当前配置参数动态计算费用](https://docs.ton.org/v3/guidelines/smart-contracts/fee-calculation) 请注意这些是硬编码值，但最佳做法是[用当前配置参数动态计算费用](https://docs.ton.org/v3/guidelines/smart-contracts/fee-calculation)
 
 ```tact
 /// Hardcoded fee value to pay for sending a message to the Jetton wallet
@@ -114,7 +114,7 @@ const FeeSwapToncoinToJetton: Int = ton("0.01") + ton("0.3");
 
   下面的示例使用了STON.fi的 API v2, 目前正在开发中。 因此，所有地址都在 [testnet][testnet] 中。
 
-  此外，有些变量，如`offerAmount`，为了演示目的而硬编码。 别忘了在真实生活的场景中更改它们。
+  此外，有些变量，如`offerAmount`，为了演示目的而硬编码。 别忘了在真实生活的场景中更改它们。 别忘了在真实生活的场景中更改它们。
 
 :::
 
@@ -216,7 +216,7 @@ Jetton to Toncoin swap与[Jetton to Jetton swap](#swaps-jetton-to-jetton) 非常
 
   下面的示例使用了STON.fi的 API v2, 目前正在开发中。 因此，所有地址都在 [testnet][testnet] 中。
 
-  此外，有些变量，如`offerAmount`，为了演示目的而硬编码。 别忘了在真实生活的场景中更改它们。
+  此外，有些变量，如`offerAmount`，为了演示目的而硬编码。 别忘了在真实生活的场景中更改它们。 别忘了在真实生活的场景中更改它们。
 
 :::
 
@@ -312,7 +312,7 @@ message(0xf8a7ea5) JettonTransfer {
 
 ### Toncoin 交换至 Jetton {#swaps-jetton-to-toncoin}
 
-要将 Toncoin 兑换为 Jetton，STON.fi 需要使用一种被称为代理 Toncoin 钱包（简称 pTON）的工具。 要与它进行适当的互动，我们需要引入一个 `ProxyToncoinTransfer{:tact}` [Message][message]
+要将 Toncoin 兑换为 Jetton，STON.fi 需要使用一种被称为代理 Toncoin 钱包（简称 pTON）的工具。 要与它进行适当的互动，我们需要引入一个 `ProxyToncoinTransfer{:tact}` [Message][message] 要与它进行适当的互动，我们需要引入一个 `ProxyToncoinTransfer{:tact}` [Message][message]
 
 ```tact
 /// https://github.com/ston-fi/sdk/blob/786ece758794bd5c575db8b38f5e5de19f43f0d1/packages/sdk/src/contracts/pTON/v2_1/PtonV2_1.ts
@@ -339,7 +339,7 @@ message(0x01f3835d) ProxyToncoinTransfer {
 
   下面的示例使用了STON.fi的 API v2, 目前正在开发中。 因此，所有地址都在 [testnet][testnet] 中。
 
-  此外，有些变量，如`offerAmount`，为了演示目的而硬编码。 别忘了在真实生活的场景中更改它们。
+  此外，有些变量，如`offerAmount`，为了演示目的而硬编码。 别忘了在真实生活的场景中更改它们。 别忘了在真实生活的场景中更改它们。
 
 :::
 
@@ -421,9 +421,9 @@ const FeeSwapToncoinToJetton: Int = ton("0.3");
 
 阅读更多关于[STON.fi documentation](https://docs.ston.fi/docs/developer-section/api-reference-v2/example_lp_provide)中流动资金条款的信息。
 
-STON.fi 允许您只指定一种代币来存入流动性--池将自动执行交换并铸造流动性提供者（LP）代币。 要做到这一点，您需要将 `ProvideLiquidity{:tact}` [Message][message] 的 `bothPositive` 字段设置为 `false{:tact}`。
+STON.fi 允许您只指定一种代币来存入流动性--池将自动执行交换并铸造流动性提供者（LP）代币。 要做到这一点，您需要将 `ProvideLiquidity{:tact}` [Message][message] 的 `bothPositive` 字段设置为 `false{:tact}`。 要做到这一点，您需要将 `ProvideLiquidity{:tact}` [Message][message] 的 `bothPositive` 字段设置为 `false{:tact}`。
 
-流动性存款使用 `ProvideLiquidity{:tact}` [Message][message] 和 \`ProvideLiquidityAdditionalData{:tact} [Struct][struct]
+流动性存款使用 `ProvideLiquidity{:tact}` [Message][message] 和 `ProvideLiquidityAdditionalData{:tact}` [Struct][struct]
 
 ```tact
 /// https://docs.ston.fi/docs/developer-section/api-reference-v2/router#provide_lp-0x37c096df
@@ -471,7 +471,7 @@ struct ProvideLiquidityAdditionalData {
 }
 ```
 
-[STON.fi SDK](https://github.com/ston-fi/sdk) 定义了一些[常量用于处理费用](https://github.com/ston-fi/sdk/blob/786ece758794bd5c575db8b38f5e5de19f43f0d1/pubes/sdk/src/contracts/dex/v2_1/router/BaseRouterV2_1.s)。 请注意这些是硬编码值，但最佳做法是[用当前配置参数动态计算费用](https://docs.ton.org/v3/guidelines/smart-contracts/fee-calculation)
+[STON.fi SDK](https://github.com/ston-fi/sdk) 定义了一些[常量用于处理费用](https://github.com/ston-fi/sdk/blob/786ece758794bd5c575db8b38f5e5de19f43f0d1/pubes/sdk/src/contracts/dex/v2_1/router/BaseRouterV2_1.s)。 请注意这些是硬编码值，但最佳做法是[用当前配置参数动态计算费用](https://docs.ton.org/v3/guidelines/smart-contracts/fee-calculation) 请注意这些是硬编码值，但最佳做法是[用当前配置参数动态计算费用](https://docs.ton.org/v3/guidelines/smart-contracts/fee-calculation)
 
 ```tact
 /// Hardcoded fee value to pay for sending a liquidity provisioning message
@@ -498,7 +498,7 @@ const FeeSingleSideProvideLpToncoin: Int = ton("0.01") + ton("0.8");
 
   下面的示例使用了STON.fi的 API v2, 目前正在开发中。 因此，所有地址都在 [testnet][testnet] 中。
 
-  此外，有些变量，如`offerAmount`，为了演示目的而硬编码。 别忘了在真实生活的场景中更改它们。
+  此外，有些变量，如`offerAmount`，为了演示目的而硬编码。 别忘了在真实生活的场景中更改它们。 别忘了在真实生活的场景中更改它们。
 
 :::
 
@@ -592,7 +592,7 @@ message(0xf8a7ea5) JettonTransfer {
 
   下面的示例使用了STON.fi的 API v2, 目前正在开发中。 因此，所有地址都在 [testnet][testnet] 中。
 
-  此外，有些变量，如`offerAmount`，为了演示目的而硬编码。 别忘了在真实生活的场景中更改它们。
+  此外，有些变量，如`offerAmount`，为了演示目的而硬编码。 别忘了在真实生活的场景中更改它们。 别忘了在真实生活的场景中更改它们。
 
 :::
 
@@ -669,12 +669,12 @@ const FeeSingleSideProvideLpToncoin: Int = ton("0.01") + ton("0.8");
 
 :::tip[Hey there!]
 
-找不到您最喜欢的 STON.fi 交互的例子吗？ 您有很酷的实施方案吗？ [欢迎贡献！](https://github.com/tact-lang/tact/issues)
+找不到您最喜欢的 STON.fi 交互的例子吗？ 您有很酷的实施方案吗？ [欢迎贡献！](https://github.com/tact-lang/tact/issues) 您有很酷的实施方案吗？ [欢迎贡献！](https://github.com/tact-lang/tact/issues)
 
 :::
 
-[struct]: /book/structs-and-messages#structs
-[message]: /book/structs-and-messages#messages
+[struct]: /zh-cn/book/structs-and-messages#structs
+[message]: /zh-cn/book/structs-and-messages#messages
 [testnet]: https://docs.ton.org/v3/documentation/smart-contracts/getting-started/testnet
 [jetton-addr-online]: https://docs.ton.org/develop/dapps/asset-processing/jettons#retrieving-jetton-wallet-addresses-for-a-given-user
 [jetton-addr-offline]: https://docs.ton.org/v3/guidelines/dapps/cookbook#how-to-calculate-users-jetton-wallet-address-offline

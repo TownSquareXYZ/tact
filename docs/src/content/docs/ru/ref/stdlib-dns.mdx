@@ -31,7 +31,7 @@ struct DNSResolveResult {
 native dnsStringToInternal(str: String): Slice?;
 ```
 
-Преобразует строку DNS в [`Slice{:tact}`][slice] или [`null{:tact}`](/book/optionals), если это невозможно.
+Преобразует строку DNS в [`Slice{:tact}`][slice] или [`null{:tact}`](/ru/book/optionals), если это невозможно.
 
 Исходный код (FunC): [dns.fc#L1](https://github.com/tact-lang/tact/blob/e69c7fc99dc9be3fa5ff984456c03ffe8fed3677/stdlib/libs/dns.fc#L1)
 
@@ -42,7 +42,7 @@ native dnsStringToInternal(str: String): Slice?;
 native dnsInternalNormalize(src: Slice): Slice;
 ```
 
-Нормализует внутреннее представление DNS [`Slice{:tact}`][slice]. Переданный [`Slice{:tact}`][slice] не должен иметь никаких ссылок, в противном случае будет выдано исключение с [кодом выхода 134](/book/exit-codes#134): `Недопустимый аргумент`.
+Нормализует внутреннее представление DNS [`Slice{:tact}`][slice]. Переданный [`Slice{:tact}`][slice] не должен иметь никаких ссылок, в противном случае будет выдано исключение с [кодом выхода 134](/ru/book/exit-codes#134): `Недопустимый аргумент`.
 
 Исходный код (FunC): [dns.fc#L125](https://github.com/tact-lang/tact/blob/e69c7fc99dc9be3fa5ff984456c03ffe8fed3677/stdlib/libs/dns.fc#L125)
 
@@ -89,7 +89,7 @@ fun dnsExtractTopDomainLength(subdomain: Slice): Int {
 fun dnsExtractTopDomain(subdomain: Slice): Slice;
 ```
 
-Извлекает домен верхнего уровня из `subdomain [`Slice{:tact}\`][slice].
+Извлекает домен верхнего уровня из `subdomain` [`Slice{:tact}`][slice].
 
 Исходный код:
 
@@ -145,7 +145,7 @@ fun dnsResolveWallet(address: Address): Cell {
 
 Типаж `DNSResolver` предоставляет две вспомогательные функции для разрешения DNS:
 
-1. [функция получатель](/book/functions#getter-functions) `dnsresolve(){:tact}`, которая соответствует его [варианту FunC](https://docs.ton.org/develop/howto/subresolvers#dnsresolve-code).
+1. [функция получатель](/ru/book/functions#getter-functions) `dnsresolve(){:tact}`, которая соответствует его [варианту FunC](https://docs.ton.org/develop/howto/subresolvers#dnsresolve-code).
 2. виртуальная функция `doResolveDNS(){:tact}`, которая создает структуру [DNSResolveResult](#dnsresolveresult) из битов поддомена [`Slice{:tact}`][slice].
 
 Исходный код:
@@ -190,6 +190,6 @@ contract ExampleContract with DNSResolver {
 - [dns.tact](https://github.com/tact-lang/tact/blob/61541b7783098e1af669faccd7d2334c10981c72/stdlib/libs/dns.tact)
 - [dns.fc](https://github.com/tact-lang/tact/blob/e69c7fc99dc9be3fa5ff984456c03ffe8fed3677/stdlib/libs/dns.fc)
 
-[p]: /book/types#primitive-types
-[клетка]: /book/cells#cells
-[нарезать]: /book/cells#slices
+[p]: /ru/book/types#primitive-types
+[клетка]: /ru/book/cells#cells
+[нарезать]: /ru/book/cells#slices

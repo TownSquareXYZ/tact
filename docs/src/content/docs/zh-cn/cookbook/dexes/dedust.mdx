@@ -5,18 +5,18 @@ sidebar:
   order: 1
 ---
 
-[DeDust](https://dedust.io)是基于[TON Blockchain](https://ton.org)和[DeDust Protocol 2.0](https://docs.dedust.io/reference/tlb-schemes)的去中心化交易所（DEX）和自动做市商（AMM）。 DeDust 的设计非常注重用户体验（UX）、 gas 效率和可扩展性。
+[DeDust](https://dedust.io)是基于[TON Blockchain](https://ton.org)和[DeDust Protocol 2.0](https://docs.dedust.io/reference/tlb-schemes)的去中心化交易所（DEX）和自动做市商（AMM）。 DeDust 的设计非常注重用户体验（UX）、 gas 效率和可扩展性。 DeDust 的设计非常注重用户体验（UX）、 gas 效率和可扩展性。
 
 在进一步介绍之前，请自己熟悉以下内容：
 
-- [接收消息](/book/receive/)
-- [发送消息](/book/send/)
-- [可替代代币（Jettons）](/cookbook/jettons/)
+- [接收消息](/zh-cn/book/receive/)
+- [发送消息](/zh-cn/book/send/)
+- [可替代代币（Jettons）](/zh-cn/cookbook/jettons/)
 - [DeDust Docs: Concepts](https://docs.edust.io/docs/concepts)
 
 ## Swaps
 
-阅读更多关于 [DeDust 文档](https://docs.edust.io/docs/swaps)中的swaps。
+阅读更多关于 [DeDust 文档](https://docs.dedust.io/docs/swaps)中的swaps。
 
 :::caution
 
@@ -24,7 +24,7 @@ sidebar:
 
 :::
 
-所有类型的交换都使用 `SwapStep{:tact}` 和 \`SwapParams{:tact}的结构：
+所有类型的交换都使用 `SwapStep{:tact}` 和 `SwapParams{:tact}` 的结构：
 
 ```tact
 /// https://docs.dedust.io/reference/tlb-schemes#swapstep
@@ -73,7 +73,7 @@ struct SwapParams {
 ### 将 Toncoin 兑换为任意 Jetton
 
 :::note
-以下指南使用了 [Jetton Vault](https://docs.dedust.io/docs/concepts#vault)。 要获取您的Jetton地址，请参阅[本指南](https://docs.edust.io/docs/swaps#step-1-find-the-vault-scale)。
+以下指南使用了 [Jetton Vault](https://docs.dedust.io/docs/concepts#vault)。 以下指南使用了 [Jetton Vault](https://docs.dedust.io/docs/concepts#vault)。 要获取您的Jetton地址，请参阅[本指南](https://docs.dedust.io/docs/swaps#step-1-find-the-vault-scale)。
 :::
 
 ```tact
@@ -218,9 +218,9 @@ message(0xf8a7ea5) JettonTransfer {
 
 ## 流动资金
 
-为了向特定的DeDust池提供流动资金，您必须提供这两种资产。 然后，池将向存款人地址颁发特别 _LP tokens_。
+为了向特定的DeDust池提供流动资金，您必须提供这两种资产。 然后，池将向存款人地址颁发特别 _LP tokens_。 然后，池将向存款人地址颁发特别 _LP tokens_。
 
-阅读更多关于[DeDust文档](https://docs.edust.io/docs/life-production)中的流动资金配置。
+阅读更多关于[DeDust文档](https://docs.dedust.io/docs/life-production)中的流动资金配置。
 
 ```tact
 import "@stdlib/deploy";
@@ -439,6 +439,6 @@ message(0xf8a7ea5) JettonTransfer {
 
 :::tip[Hey there!]
 
-没有找到您最喜欢的 Dedust 交互的例子？ 您有很酷的实施方案吗？ [欢迎贡献！](https://github.com/tact-lang/tact/issues)
+没有找到您最喜欢的 Dedust 交互的例子？ 您有很酷的实施方案吗？ [欢迎贡献！](https://github.com/tact-lang/tact/issues) 您有很酷的实施方案吗？ [欢迎贡献！](https://github.com/tact-lang/tact/issues)
 
 :::

@@ -5,7 +5,7 @@ description: Различные глобальные функции времен
 
 import { Badge } from '@astrojs/starlight/components';
 
-На этой странице перечислены все встроенные [глобальные статические функции](/book/functions#global-static-functions), которые оцениваются во время создания проекта Tact и не могут работать с непостоянными данными во время выполнения. Эти функции обычно называются "функциями времени компиляции" или сокращенно _comptime_ функциями.
+На этой странице перечислены все встроенные [глобальные статические функции](/ru/book/functions#global-static-functions), которые оцениваются во время создания проекта Tact и не могут работать с непостоянными данными во время выполнения. Эти функции обычно называются "функциями времени компиляции" или сокращенно _comptime_ функциями.
 
 ## address
 
@@ -169,7 +169,7 @@ contract Example {
 fun ton(value: String): Int;
 ```
 
-Функция времени компиляции, которая преобразует заданное значение Toncoin из удобного для восприятия формата [`String{:tact}`][p] в формат [nanoToncoin](/book/integers#nanotoncoin) [`Int{:tact}`][int].
+Функция времени компиляции, которая преобразует заданное значение Toncoin из удобного для восприятия формата [`String{:tact}`][p] в формат [nanoToncoin](/ru/book/integers#nanotoncoin) [`Int{:tact}`][int].
 
 Пример использования:
 
@@ -183,10 +183,10 @@ contract Example {
 }
 ```
 
-[p]: /book/types#primitive-types
-[bool]: /book/types#booleans
-[int]: /book/integers
-[клетка]: /book/cells#cells
-[кусочек]: /book/cells#slices
-[boc]: /book/cells#cells-boc
+[p]: /ru/book/types#primitive-types
+[bool]: /ru/book/types#booleans
+[int]: /ru/book/integers
+[клетка]: /ru/book/cells#cells
+[кусочек]: /ru/book/cells#slices
+[boc]: /ru/book/cells#cells-boc
 [крк]: https://en.wikipedia.org/wiki/Cyclic_redundancy_check

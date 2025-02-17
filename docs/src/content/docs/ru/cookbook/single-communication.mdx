@@ -2,15 +2,15 @@
 title: Связь с одним контрактом
 description: Общие примеры связи одного развернутого контракта с другими контрактами на блокчейне
 prev:
-  link: /cookbook
+  link: /ru/cookbook
   label: Обзор подготовительной книги
 ---
 
 На этой странице перечислены примеры коммуникации одного развернутого контракта с другими контрактами на блокчейне.
 
-Примеры взаимодействия между несколькими развернутыми контрактами см. в разделе [взаимодействие с несколькими контрактами](/cookbook/multi-communication).
+Примеры взаимодействия между несколькими развернутыми контрактами см. в разделе [взаимодействие с несколькими контрактами](/ru/cookbook/multi-communication).
 
-## Как отправить простой ответ
+## Как отправить простой ответ {#how-to-make-a-basic-reply}
 
 ```tact
 contract Example {
@@ -91,7 +91,7 @@ contract Example {
 
 ## Как отправить сообщение с длинным текстовым комментарием
 
-Если нам нужно отправить сообщение с длинным текстовым комментарием, мы должны создать [`String{:tact}`](/book/types#primitive-types), который состоит из более чем $127$ символов. Для этого мы можем использовать тип примитива [`StringBuilder{:tact}`](/book/types#primitive-types) и его методы `beginComment(){:tact}` и `append(){:tact}`. Перед отправкой мы должны преобразовать эту строку в ячейку с помощью метода `toCell(){:tact}`.
+Если нам нужно отправить сообщение с длинным текстовым комментарием, мы должны создать [`String{:tact}`](/ru/book/types#primitive-types), который состоит из более чем $127$ символов. Для этого мы можем использовать тип примитива [`StringBuilder{:tact}`](/ru/book/types#primitive-types) и его методы `beginComment(){:tact}` и `append(){:tact}`. Перед отправкой мы должны преобразовать эту строку в ячейку с помощью метода `toCell(){:tact}`.
 
 ```tact
 contract Example {
@@ -113,10 +113,10 @@ contract Example {
 
 :::note[Useful ссылки:]
 
-  ["Отправка сообщений" в Книге](/book/send#send-message)\
-  ["Cообщения `mode`" в Книге](/book/message-mode)\
-  [`StringBuilder{:tact}` в Книге](/book/types#primitive-types)\
-  [`Cell{:tact}`  в базовой библиотеке](/ref/core-cells)
+  ["Отправка сообщений" в Книге](/ru/book/send#send-message)\
+  ["Cообщения `mode`" в Книге](/ru/book/message-mode)\
+  [`StringBuilder{:tact}` в Книге](/ru/book/types#primitive-types)\
+  [`Cell{:tact}`  в базовой библиотеке](/ru/ref/core-cells)
 
 :::
 

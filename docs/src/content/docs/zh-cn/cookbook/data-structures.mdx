@@ -7,13 +7,13 @@ description: 本页列出了在 Tact 中实现的数据结构的便捷集合，�
 
 本页列出了一系列在 Tact 中实现的数据结构，方便您满足日常及其他需求。
 
-这里列出的所有数据结构都是使用内置的 [`map<K, V>{:tact}`][map]类型制作的。  有关map的描述和基本用法，请参阅[本书专页][map]。
+这里列出的所有数据结构都是使用内置的 [`map<K, V>{:tact}`][map]类型制作的。  有关map的描述和基本用法，请参阅[本书专页][map]。 有关map的描述和基本用法，请参阅[本书专页][map]。
 
-## 数组（array）
+## 数组（array） {#array}
 
 [数组](https://en.wikipedia.org/wiki/Array_(data_structure)) 是一种数据结构，由连续的内存块组成，代表相同内存大小的元素集合，每个元素至少由一个数组键或 _index_ 标识。
 
-下面的示例使用[结构](/book/structs-and-messages#structs)包装的[`map<Int, V>{:tact}`][map]模拟数组，其中`V{:tact}`可以是 map 的任何[允许值类型](/book/maps#allowed-types)：
+下面的示例使用[结构](/zh-cn/book/structs-and-messages#structs)包装的[`map<Int, V>{:tact}`][map]模拟数组，其中`V{:tact}`可以是 map 的任何[允许值类型](/zh-cn/book/maps#allowed-types)：
 
 ```tact
 import "@stdlib/deploy"; // for Deployable trait
@@ -159,14 +159,14 @@ contract MapAsArray with Deployable {
 }
 ```
 
-## 堆栈(Stack)
+## 堆栈(Stack) {#stack}
 
 [堆栈](https://en.wikipedia.org/wiki/Stack_(abstract_data_type)) 是一种由元素集合组成的数据结构，主要有两种操作：
 
 - push，将一个元素添加到集合的末尾
 - pop，移除最近添加的元素
 
-下面的示例使用[结构](/book/structs-and-messages#structs)包装的[`map<Int, V>{:tact}`][map]模拟堆栈，其中 `V{:tact}`可以是 map 的任何[允许值类型](/book/maps#allowed-types)：
+下面的示例使用[结构](/zh-cn/book/structs-and-messages#structs)包装的[`map<Int, V>{:tact}`][map]模拟堆栈，其中 `V{:tact}`可以是 map 的任何[允许值类型](/zh-cn/book/maps#allowed-types)：
 
 ```tact
 import "@stdlib/deploy"; // for Deployable trait
@@ -263,11 +263,11 @@ contract MapAsStack with Deployable {
 }
 ```
 
-## 循环缓冲区 (Circular buffer)
+## 循环缓冲区 (Circular buffer) {#circular-buffer}
 
 [循环缓冲区](https://en.wikipedia.org/wiki/Circular_buffer)（循环队列、循环缓冲区或环形缓冲区）是一种数据结构，它使用单个固定大小的[缓冲区](https://en.wikipedia.org/wiki/Data_buffer)，就像端对端连接一样。
 
-下面的示例使用包裹在 [Struct](/book/structs-and-messages#structs) 中的 [`map<Int, V>{:tact}`][map]模拟循环缓冲区，其中 `V{:tact}` 可以是 map 的任何 [允许值类型](/book/maps#allowed-types)：
+下面的示例使用包裹在 [Struct](/zh-cn/book/structs-and-messages#structs) 中的 [`map<Int, V>{:tact}`][map]模拟循环缓冲区，其中 `V{:tact}` 可以是 map 的任何 [允许值类型](/zh-cn/book/maps#allowed-types)：
 
 ```tact
 import "@stdlib/deploy"; // for Deployable trait
@@ -371,8 +371,8 @@ contract MapAsCircularBuffer with Deployable {
 
 :::tip[Hey there!]
 
-  没有找到您最喜欢的使用数据结构的示例？  您有很酷的实施方案吗？ [欢迎投稿！](https://github.com/tact-lang/tact/issues)
+  没有找到您最喜欢的使用数据结构的示例？  您有很酷的实施方案吗？ [欢迎投稿！](https://github.com/tact-lang/tact/issues) 您有很酷的实施方案吗？ [欢迎投稿！](https://github.com/tact-lang/tact/issues)
 
 :::
 
-[map]: /book/maps
+[map]: /zh-cn/book/maps

@@ -17,9 +17,9 @@ sidebar:
 
 Прежде чем продолжить, ознакомьтесь со следующими материалами:
 
-- [Получение сообщений](/book/receive/)
-- [Отправка сообщений](/book/send/)
-- [Взаимозаменяемые токены (Jettons)](/cookbook/jettons/)
+- [Получение сообщений](/ru/book/receive/)
+- [Отправка сообщений](/ru/book/send/)
+- [Взаимозаменяемые токены (Jettons)](/ru/cookbook/jettons/)
 - [Документация STON.fi: Глоссарий](https://docs.ston.fi/docs/user-section/glossary)
 - [Документация STON.fi: Архитектура](https://docs.ston.fi/docs/developer-section/architecture)
 
@@ -85,7 +85,7 @@ struct SwapAdditionalData {
 }
 ```
 
-[STON.fi SDK](https://github.com/ston-fi/sdk) определяет некоторые [константы для работы с комиссиями](https://github.com/ston-fi/sdk/blob/786ece758794bd5c575db8b38f5e5de19f43f0d1/packages/sdk/src/contracts/dex/v2_1/router/BaseRouterV2_1.ts). Обратите внимание, что это жёсткие значения, но лучше [рассчитывать комиссии динамически с использованием текущих параметров конфигурации](https://docs.ton.org/v3/guidelines/smart-contracts/fee-calculation).
+[SDK STON.fi](https://github.com/ston-fi/sdk) определяет некоторые [константы для работы с комиссиями](https://github.com/ston-fi/sdk/blob/786ece758794bd5c575db8b38f5e5de19f43f0d1/packages/sdk/src/contracts/dex/v2_1/router/BaseRouterV2_1.ts). Обратите внимание, что это жёстко заданные значения, но лучше [рассчитывать комиссии динамически, используя текущие параметры конфигурации](https://docs.ton.org/v3/guidelines/smart-contracts/fee-calculation).
 
 ```tact
 /// Жестко заданная сумма комиссии за отправку сообщения на кошелек Jetton
@@ -112,9 +112,9 @@ const FeeSwapToncoinToJetton: Int = ton("0.01") + ton("0.3");
 
 :::caution
 
-  В следующем примере используется API v2 STON.fi, который находится в разработке. Поэтому все адреса указываются в формате [тестовой сети][testnet].
+  В следующем примере используется API v2 STON.fi, который находится в разработке. Поэтому все адреса указаны в формате [тестовой сети][testnet].
 
-  Кроме того, некоторые переменные, такие как `offerAmount` жёстко заданы для демонстрации. Не забудьте изменить их в реальных сценариях.
+  Кроме того, некоторые переменные, такие как `offerAmount` жестко заданы для демонстрации. Не забудьте изменить их в реальных сценариях.
 
 :::
 
@@ -337,9 +337,9 @@ message(0x01f3835d) ProxyToncoinTransfer {
 
 :::caution
 
-  В следующем примере используется API v2 STON.fi, который находится в разработке. Поэтому все адреса указаны в формате [тестовой сети][testnet].
+  В следующем примере используется API v2 STON.fi, который находится в разработке. Поэтому все адреса указываются в формате [тестовой сети][testnet].
 
-  Кроме того, некоторые переменные, такие как `offerAmount` жестко заданы для демонстрации. Не забудьте изменить их в реальных сценариях.
+  Кроме того, некоторые переменные, такие как `offerAmount` жёстко заданы для демонстрации. Не забудьте изменить их в реальных сценариях.
 
 :::
 
@@ -471,7 +471,7 @@ struct ProvideLiquidityAdditionalData {
 }
 ```
 
-[SDK STON.fi](https://github.com/ston-fi/sdk) определяет некоторые [константы для работы с комиссиями](https://github.com/ston-fi/sdk/blob/786ece758794bd5c575db8b38f5e5de19f43f0d1/packages/sdk/src/contracts/dex/v2_1/router/BaseRouterV2_1.ts). Обратите внимание, что это жёстко заданные значения, но лучше [рассчитывать комиссии динамически, используя текущие параметры конфигурации](https://docs.ton.org/v3/guidelines/smart-contracts/fee-calculation).
+[STON.fi SDK](https://github.com/ston-fi/sdk) определяет некоторые [константы для работы с комиссиями](https://github.com/ston-fi/sdk/blob/786ece758794bd5c575db8b38f5e5de19f43f0d1/packages/sdk/src/contracts/dex/v2_1/router/BaseRouterV2_1.ts). Обратите внимание, что это жёсткие значения, но лучше [рассчитывать комиссии динамически с использованием текущих параметров конфигурации](https://docs.ton.org/v3/guidelines/smart-contracts/fee-calculation).
 
 ```tact
 /// Жестко заданное значение комиссии для отправки сообщения о предоставлении ликвидности 
@@ -665,7 +665,7 @@ const FeeSingleSideProvideLpToncoin: Int = ton("0.01") + ton("0.8");
 
 ### Вывод ликвидности
 
-Для вывода ликвидности требуется сжигание LP токенов. Вы можете ознакомиться с примерами сжигания Jetton в соответствующем [разделе страницы Jettons Cookbook](/cookbook/jettons#burning-jetton). Однако для сжигания потребуется добавить больше Toncoin, чем обычно, так как недостаточное количество может привести к сжиганию LP токенов без полного (или частичного) возврата ликвидности из пула. Поэтому рекомендуется добавлять минимум $0.5$ Toncoin - излишек будет возвращен.
+Для вывода ликвидности требуется сжигание LP токенов. Вы можете ознакомиться с примерами сжигания Jetton в соответствующем [разделе страницы Jettons Cookbook](/ru/cookbook/jettons#burning-jetton). Однако для сжигания потребуется добавить больше Toncoin, чем обычно, так как недостаточное количество может привести к сжиганию LP токенов без полного (или частичного) возврата ликвидности из пула. Поэтому рекомендуется добавлять минимум $0.5$ Toncoin - излишек будет возвращен.
 
 :::tip[Hey [Обратите внимание!]
 
@@ -673,8 +673,8 @@ const FeeSingleSideProvideLpToncoin: Int = ton("0.01") + ton("0.8");
 
 :::
 
-[struct]: /book/structs-and-messages#structs
-[message]: /book/structs-and-messages#messages
+[struct]: /ru/book/structs-and-messages#structs
+[message]: /ru/book/structs-and-messages#messages
 [testnet]: https://docs.ton.org/v3/documentation/smart-contracts/getting-started/testnet
 [jetton-addr-online]: https://docs.ton.org/develop/dapps/asset-processing/jettons#retrieving-jetton-wallet-addresses-for-a-given-user
 [jetton-addr-offline]: https://docs.ton.org/v3/guidelines/dapps/cookbook#how-to-calculate-users-jetton-wallet-address-offline

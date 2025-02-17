@@ -3,7 +3,7 @@ title: "@stdlib/stoppable"
 description: Предоставляет типажи, позволяющие остановить контракт, которые полезны в аварийных режимах или режимах технического обслуживания
 ---
 
-Предоставляет [типажи](/book/types#composite-types), позволяющие остановить [контракт](/book/contracts). Полезно для аварийных режимов или режимов обслуживания. Требует типаж [`Ownable{:tact}`](/ref/stdlib-ownable#ownable) из [`@stdlib/ownable`](/ref/stdlib-ownable). Этот типаж управляет одним флагом `stopped` в контракте, а обработка состояния остановки должна выполняться в самом контракте.
+Предоставляет [типажи](/ru/book/types#composite-types), позволяющие остановить [контракт](/ru/book/contracts). Полезно для аварийных режимов или режимов обслуживания. Требует типаж [`Ownable{:tact}`](/ru/ref/stdlib-ownable#ownable) из [`@stdlib/ownable`](/ru/ref/stdlib-ownable). Этот типаж управляет одним флагом `stopped` в контракте, а обработка состояния остановки должна выполняться в самом контракте.
 
 Чтобы использовать эту библиотеку, импортируйте `@stdlib/stoppable`:
 
@@ -15,7 +15,7 @@ import "@stdlib/stoppable"; // это также автоматически им
 
 ### Останавливаемый
 
-[Типаж](/book/types#composite-types) `Stoppable{:tact}` реализует приемник для [сообщения](/book/structs-and-messages#messages) [строку](/book/types#primitive-types) "Stop", который может быть отправлен владельцем, реализует `stopped(){:tact}` [функцию получения](/book/functions#getter-functions), которая возвращает `true{:tact}`, если контракт остановлен (или `false{:tact}` в противном случае), и предоставляет частные (не получающие) функции `requireNotStopped(){:tact}` и `requireStopped(){:tact}`.
+[Типаж](/ru/book/types#composite-types) `Stoppable{:tact}` реализует приемник для [сообщения](/ru/book/structs-and-messages#messages) [строку](/ru/book/types#primitive-types) "Stop", который может быть отправлен владельцем, реализует `stopped(){:tact}` [функцию получения](/ru/book/functions#getter-functions), которая возвращает `true{:tact}`, если контракт остановлен (или `false{:tact}` в противном случае), и предоставляет частные (не получающие) функции `requireNotStopped(){:tact}` и `requireStopped(){:tact}`.
 
 Исходный код:
 
@@ -65,7 +65,7 @@ contract MyContract with Stoppable {
 
 ### Возобновляемый
 
-`Resumable{:tact}` [типаж](/book/types#composite-types) расширяет черту [`Stoppable{:tact}`](#stoppable) и позволяет возобновить выполнение [контракта](/book/contracts).
+`Resumable{:tact}` [типаж](/ru/book/types#composite-types) расширяет черту [`Stoppable{:tact}`](#stoppable) и позволяет возобновить выполнение [контракта](/ru/book/contracts).
 
 Исходный код:
 

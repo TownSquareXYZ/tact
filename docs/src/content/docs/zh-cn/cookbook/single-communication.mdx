@@ -37,7 +37,7 @@ contract Example {
 
 ## 如何发送包含全部余额的信息
 
-如果我们需要发送智能合约的全部余额，则应使用 `SendRemainingBalance{:tact}` 发送模式。  或者，我们也可以使用 `mode：128{:tact}`，其含义相同。 或者，我们也可以使用 `mode：128{:tact}`，其含义相同。
+如果我们需要发送智能合约的全部余额，则应使用 `SendRemainingBalance{:tact}` 发送模式。  或者，我们也可以使用 `mode：128{:tact}`，其含义相同。
 
 ```tact
 contract Example {
@@ -91,7 +91,7 @@ contract Example {
 
 ## 如何发送带有长文本注释的信息
 
-如果我们需要发送一条带有冗长文本注释的信息，我们应该创建一个 [`String{:tact}`](/book/types#primitive-types)，由超过 $127$ 个字符组成。 如果我们需要发送一条带有冗长文本注释的信息，我们应该创建一个 [`String{:tact}`](/book/types#primitive-types)，由超过 $127$ 个字符组成。 为此，我们可以利用 [`StringBuilder{:tact}`](/book/types#primitive-types)原始类型及其名为 `beginComment(){:tact}` 和 `append(){:tact}` 的方法。 在发送之前，我们应该使用 `toCell(){:tact}` 方法将字符串转换为cell。 在发送之前，我们应该使用 `toCell(){:tact}` 方法将字符串转换为cell。
+如果我们需要发送一条带有冗长文本注释的信息，我们应该创建一个 [`String{:tact}`](/zh-cn/book/types#primitive-types)，由超过 $127$ 个字符组成。 如果我们需要发送一条带有冗长文本注释的信息，我们应该创建一个 [`String{:tact}`](/zh-cn/book/types#primitive-types)，由超过 $127$ 个字符组成。 为此，我们可以利用 [`StringBuilder{:tact}`](/zh-cn/book/types#primitive-types)原始类型及其名为 `beginComment(){:tact}` 和 `append(){:tact}` 的方法。 在发送之前，我们应该使用 `toCell(){:tact}` 方法将字符串转换为cell。 在发送之前，我们应该使用 `toCell(){:tact}` 方法将字符串转换为cell。
 
 ```tact
 contract Example {
@@ -122,6 +122,6 @@ contract Example {
 
 :::tip[Hey there!]
 
-  没有找到您最喜欢的单一合约通信案例？  您有很酷的实施方案吗？ [欢迎投稿！](https://github.com/tact-lang/tact/issues) 您有很酷的实施方案吗？ [欢迎投稿！](https://github.com/tact-lang/tact/issues)
+  没有找到您最喜欢的单一合约通信案例？  您有很酷的实施方案吗？ [欢迎投稿！](https://github.com/tact-lang/tact/issues)
 
 :::

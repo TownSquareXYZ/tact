@@ -6,7 +6,7 @@ prev:
   label: 来自Solidity
 ---
 
-Tact 程序中的每个变量、项目和值都有一个类型。 它们可以是 它们可以是
+Tact 程序中的每个变量、项目和值都有一个类型。 它们可以是
 
 - [原始类型](#primitive-types) 之一
 - 或 [复合类型](#composite-types)
@@ -28,9 +28,9 @@ Tact 支持许多专为智能合约定制的原始数据类型：
 
 ### 布尔值 {#booleans}
 
-原始类型 `Bool{:tact}` 是经典的布尔类型，只能容纳两个值：`true{:tact}` 和 `false{:tact}`。它便于布尔和逻辑运算，也便于存储标志。 它便于布尔和逻辑运算，也便于存储标志。 它便于布尔和逻辑运算，也便于存储标志。
+原始类型 `Bool{:tact}` 是经典的布尔类型，只能容纳两个值：`true{:tact}` 和 `false{:tact}`。它便于布尔和逻辑运算，也便于存储标志。 它便于布尔和逻辑运算，也便于存储标志。
 
-Tact 中没有隐式类型转换，因此两个布尔值的加法（[`+{:tact}`](/zh-cn/book/operators#binary-add)）是不可能的。这里有许多比较[运算符](/zh-cn/book/operators)，例如： 这里有许多比较[运算符](/zh-cn/book/operators)，例如： 这里有许多比较[运算符](/book/operators)，例如：
+Tact 中没有隐式类型转换，因此两个布尔值的加法（[`+{:tact}`](/zh-cn/book/operators#binary-add)）是不可能的。这里有许多比较[运算符](/zh-cn/book/operators)，例如： 这里有许多比较[运算符](/zh-cn/book/operators)，例如：
 
 - `&&{:tact}` 为 [logical AND](/zh-cn/book/operators#binary-logical-and)
 - `||{:tact}` 为 [logical OR](/zh-cn/book/operators#binary-logical-or)
@@ -50,7 +50,7 @@ Tact 中没有隐式类型转换，因此两个布尔值的加法（[`+{:tact}`]
 
 除上述复合类型外，Tact 还提供了一种特殊的类型构造函数[`bounced<T>{:tact}`](/zh-cn/book/bounced)，它只能在[回退消息接收器(bounced message receivers)](/zh-cn/book/bounced)中指定。
 
-请注意，虽然[合约](#contracts)和[trait](#traits)也被视为Tact类型系统的一部分，但我们不能像[结构体和消息](#structs-and-messages)那样传递它们。 相反，我们可以使用 [`initOf{:tact}`](/zh-cn/book/expressions#initof)表达式来获取给定合约的初始状态。 相反，我们可以使用 [`initOf{:tact}`](/book/expressions#initof)表达式来获取给定合约的初始状态。
+请注意，虽然[合约](#contracts)和[trait](#traits)也被视为Tact类型系统的一部分，但我们不能像[结构体和消息](#structs-and-messages)那样传递它们。 相反，我们可以使用 [`initOf{:tact}`](/zh-cn/book/expressions#initof)表达式来获取给定合约的初始状态。
 
 ### Maps
 
@@ -112,7 +112,7 @@ let opt: Int? = null; // Int or null, with explicitly assigned null
 
 ### 合约 {#contracts}
 
-TON区块链上的[合约](/zh-cn/book/contracts)在Tact中作为智能合约的主要入口。 它包含了一个TON合约的所有[functions](/zh-cn/book/functions)、[getters](/zh-cn/book/functions#getter-functions)和[receivers](/zh-cn/book/functions#receiver-functions)等多种内容。 它包含了一个TON合约的所有[functions](/book/functions)、[getters](/book/functions#getter-functions)和[receivers](/book/functions#receiver-functions)等多种内容。
+TON区块链上的[合约](/zh-cn/book/contracts)在Tact中作为智能合约的主要入口。 它包含了一个TON合约的所有[functions](/zh-cn/book/functions)、[getters](/zh-cn/book/functions#getter-functions)和[receivers](/zh-cn/book/functions#receiver-functions)等多种内容。
 
 [合约示例](/zh-cn/book/contracts)：
 
@@ -142,7 +142,7 @@ or [Contracts](#contracts) and [Traits](#traits)
 
 ### Traits
 
-Tact 不支持经典的类继承，而是引入了**trait**（traits）的概念。它们的结构与抽象合约（类似于流行的面向对象语言中的抽象类）相同。 它们的结构与[合约](#contracts) 相同，但不能[初始化持久状态变量](/zh-cn/book/contracts#init-function)。 它们的结构与[合约](#contracts）相同，但不能[初始化持久状态变量](/book/contracts#init-function)。
+Tact 不支持经典的类继承，而是引入了**trait**（traits）的概念。它们的结构与抽象合约（类似于流行的面向对象语言中的抽象类）相同。 它们的结构与[合约](#contracts) 相同，但不能[初始化持久状态变量](/zh-cn/book/contracts#init-function)。
 
 trait还可以让继承它的合约重写其[函数](/zh-cn/book/functions#virtual-and-abstract-functions)的行为和[常量](/zh-cn/book/constants#virtual-and-abstract-constants)的值。
 

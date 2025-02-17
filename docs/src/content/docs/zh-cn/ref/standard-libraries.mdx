@@ -17,14 +17,14 @@ import "@stdlib/deploy";
 
 ## 标准库列表： {#list}
 
-| 库                        | 描述                                                      | 常用的 API                                                                 |
-| :----------------------- | :------------------------------------------------------ | :---------------------------------------------------------------------- |
-| [`@stdlib/config`][1]    | 配置和选举地址检索。                                              | [`getConfigAddress(){:tact}`][gca], [`getElectorAddress(){:tact}`][gea] |
-| [`@stdlib/content`][2]   | 将链下链接(link) [strings][p] 编码为[`cell{:tact}`][cell]。      | [`createOffchainContent(){:tact}`][coff]                                |
-| [`@stdlib/deploy`][3]    | 统一的部署机制。                                                | [`Deployable{:tact}`][dep], [`FactoryDeployable{:tact}`][fcd]           |
-| [`@stdlib/dns`][4]       | 解析 [DNS][dns] 名称。                                       | [`DNSResolver{:tact}`][dnsr], [`dnsInternalVerify(){:tact}`][dnsi]      |
-| [`@stdlib/ownable`][5]   | 所有权管理的trait。                                            | [`Ownable{:tact}`][own], [`OwnableTransferable{:tact}`][ownt]           |
-| [`@stdlib/stoppable`][6] | 允许合约停止的 Traits。 需要 [@stdlib/ownable][5]。                | [`Stoppable{:tact}`][stp], [`Resumable{:tact}`][res]                    |
+| 库                       | 描述                                                        | 常用的 API |
+| :----------------------- | :---------------------------------------------------------- | :--------- |
+| [`@stdlib/config`][1]    | 配置和选举地址检索。                                        | [`getConfigAddress(){:tact}`][gca], [`getElectorAddress(){:tact}`][gea] |
+| [`@stdlib/content`][2]   | 将链下链接(link) [strings][p] 编码为[`cell{:tact}`][cell]。 | [`createOffchainContent(){:tact}`][coff] |
+| [`@stdlib/deploy`][3]    | 统一的部署机制。                                            | [`Deployable{:tact}`][dep], [`FactoryDeployable{:tact}`][fcd] |
+| [`@stdlib/dns`][4]       | 解析 [DNS][dns] 名称。                                      | [`DNSResolver{:tact}`][dnsr], [`dnsInternalVerify(){:tact}`][dnsi] |
+| [`@stdlib/ownable`][5]   | 所有权管理的trait。                                         | [`Ownable{:tact}`][own], [`OwnableTransferable{:tact}`][ownt] |
+| [`@stdlib/stoppable`][6] | 允许合约停止的 Traits。 需要 [@stdlib/ownable][5]。         | [`Stoppable{:tact}`][stp], [`Resumable{:tact}`][res] |
 
 [1]: /zh-cn/ref/stdlib-config
 [gca]: /zh-cn/ref/stdlib-config#getconfigaddress

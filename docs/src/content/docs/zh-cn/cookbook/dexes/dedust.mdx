@@ -5,14 +5,14 @@ sidebar:
   order: 1
 ---
 
-[DeDust](https://dedust.io)是基于[TON Blockchain](https://ton.org)和[DeDust Protocol 2.0](https://docs.dedust.io/reference/tlb-schemes)的去中心化交易所（DEX）和自动做市商（AMM）。 DeDust 的设计非常注重用户体验（UX）、 gas 效率和可扩展性。 DeDust 的设计非常注重用户体验（UX）、 gas 效率和可扩展性。
+[DeDust](https://dedust.io)是基于[TON Blockchain](https://ton.org)和[DeDust Protocol 2.0](https://docs.dedust.io/reference/tlb-schemes)的去中心化交易所（DEX）和自动做市商（AMM）。 DeDust 的设计非常注重用户体验（UX）、 gas 效率和可扩展性。
 
 在进一步介绍之前，请自己熟悉以下内容：
 
 - [接收消息](/zh-cn/book/receive/)
 - [发送消息](/zh-cn/book/send/)
 - [可替代代币（Jettons）](/zh-cn/cookbook/jettons/)
-- [DeDust Docs: Concepts](https://docs.edust.io/docs/concepts)
+- [DeDust Docs: Concepts](https://docs.dedust.io/docs/concepts)
 
 ## Swaps
 
@@ -73,7 +73,7 @@ struct SwapParams {
 ### 将 Toncoin 兑换为任意 Jetton
 
 :::note
-以下指南使用了 [Jetton Vault](https://docs.dedust.io/docs/concepts#vault)。 以下指南使用了 [Jetton Vault](https://docs.dedust.io/docs/concepts#vault)。 要获取您的Jetton地址，请参阅[本指南](https://docs.dedust.io/docs/swaps#step-1-find-the-vault-scale)。
+以下指南使用了 [Jetton Vault](https://docs.dedust.io/docs/concepts#vault)。 要获取您的Jetton地址，请参阅[本指南](https://docs.dedust.io/docs/swaps#step-1-find-the-vault-scale)。
 :::
 
 ```tact
@@ -218,7 +218,7 @@ message(0xf8a7ea5) JettonTransfer {
 
 ## 流动资金
 
-为了向特定的DeDust池提供流动资金，您必须提供这两种资产。 然后，池将向存款人地址颁发特别 _LP tokens_。 然后，池将向存款人地址颁发特别 _LP tokens_。
+为了向特定的DeDust池提供流动资金，您必须提供这两种资产。 然后，池将向存款人地址颁发特别 _LP tokens_。
 
 阅读更多关于[DeDust文档](https://docs.dedust.io/docs/life-production)中的流动资金配置。
 
@@ -435,10 +435,10 @@ message(0xf8a7ea5) JettonTransfer {
 
 ### 提取流动资金
 
-要提取流动性，需要销毁的 LP 代币。 您可以参考 [Jettons Cookbook 页面中有关 Jetton 销毁的相关部分](/cookbook/jettons#burning-jetton) 的示例。 然而，应该添加比正常销毁更多的 Toncoin，因为如果添加的 Toncoin 太少，可能会导致 LP 代币被销毁，但不会从池中发送任何（或仅部分）流动性。 因此，请考虑至少附上 $0.5$ Toncoin - 超额部分将予以退还。
+要提取流动性，需要销毁的 LP 代币。 您可以参考 [Jettons Cookbook 页面中有关 Jetton 销毁的相关部分](/zh-cn/cookbook/jettons#burning-jetton) 的示例。 然而，应该添加比正常销毁更多的 Toncoin，因为如果添加的 Toncoin 太少，可能会导致 LP 代币被销毁，但不会从池中发送任何（或仅部分）流动性。 因此，请考虑至少附上 $0.5$ Toncoin - 超额部分将予以退还。
 
 :::tip[Hey there!]
 
-没有找到您最喜欢的 Dedust 交互的例子？ 您有很酷的实施方案吗？ [欢迎贡献！](https://github.com/tact-lang/tact/issues) 您有很酷的实施方案吗？ [欢迎贡献！](https://github.com/tact-lang/tact/issues)
+没有找到您最喜欢的 Dedust 交互的例子？ 您有很酷的实施方案吗？ [欢迎贡献！](https://github.com/tact-lang/tact/issues)
 
 :::

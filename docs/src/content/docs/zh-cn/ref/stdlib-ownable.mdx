@@ -3,7 +3,7 @@ title: "@stdlib/ownable"
 description: 提供适用于拥有合约的 traits，这些 traits 通常是其他 traits 所需要的。
 ---
 
-为可拥有的合约提供 [traits](/book/types#composite-types)。 这些 traits 通常是其他 traits 所需要的。
+为可拥有的合约提供 [traits](/zh-cn/book/types#composite-types)。 这些 traits 通常是其他 traits 所需要的。
 
 要使用该库，请导入 `@stdlib/ownable`：
 
@@ -13,7 +13,7 @@ import "@stdlib/ownable";
 
 ## Messages
 
-### ChangeOwnerC
+### ChangeOwner
 
 ```tact
 message ChangeOwner {
@@ -72,7 +72,7 @@ contract ExampleContract with Ownable {
 
 ### OwnableTransferable
 
-`OwnableTransferable{:tact}` 是 [`Ownable{:tact}`](#ownable) 的扩展，允许将合约的所有权转移到另一个地址。 它提供了一个安全的句柄 [Message](/zh-cn/book/structs-and-messages#messages) [`ChangeOwner{:tact}`](#changeowner)，可供所有者调用以转移所有权。 它提供了一个安全的句柄 [Message](/book/structs-and-messages#messages) [`ChangeOwner{:tact}`](#changeowner)，可供所有者调用以转移所有权。
+`OwnableTransferable{:tact}` 是 [`Ownable{:tact}`](#ownable) 的扩展，允许将合约的所有权转移到另一个地址。 它提供了一个安全的句柄 [Message](/zh-cn/book/structs-and-messages#messages) [`ChangeOwner{:tact}`](#changeowner)，可供所有者调用以转移所有权。
 
 如果所有者转移请求成功，合约将回复一条 [`ChangeOwnerOk{:tact}`](#changeownerok) [消息](/zh-cn/book/structs-and-messages#messages)。
 

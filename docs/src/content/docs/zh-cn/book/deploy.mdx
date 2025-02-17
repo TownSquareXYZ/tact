@@ -1,9 +1,12 @@
 ---
 title: 部署
 description: 将Tact 合约部署到 TON Blockchain 测试网或主网的常见方法
+prev:
+  link: /zh-cn/book/message-mode
+  label: 消息模式
 ---
 
-Tact Deployer 是一个与 [TON Verifier](https://verifier.ton.org) 集成的小型库，可让您使用自己喜欢的钱包安全地部署合约，而无需管理密钥或手动部署合约。  Tact Deployer 还能自动验证合约的源代码，确保编译器不受损害。 Tact Deployer 还能自动验证合约的源代码，确保编译器不受损害。
+Tact Deployer 是一个与 [TON Verifier](https://verifier.ton.org) 集成的小型库，可让您使用自己喜欢的钱包安全地部署合约，而无需管理密钥或手动部署合约。  Tact Deployer 还能自动验证合约的源代码，确保编译器不受损害。
 
 ## 要求
 
@@ -19,7 +22,7 @@ yarn add @tact-lang/deployer
 
 ## 如何使用
 
-当你使用 Tact 构建智能合约时，它会生成一个包（\*.pkg）文件，其中包含所构建智能合约的所有必要信息。 要在TON中部署智能合约，您需要发送附有`init`数据的消息。 要在TON中部署智能合约，您需要发送附有`init`数据的消息。
+当你使用 Tact 构建智能合约时，它会生成一个包（\*.pkg）文件，其中包含所构建智能合约的所有必要信息。 要在TON中部署智能合约，您需要发送附有`init`数据的消息。
 
 ```typescript
 import * as fs from 'fs';

@@ -5,7 +5,7 @@ description: 在Tact中处理非同质化代币 (NFT) 的常见示例
 
 此页列出了与 [NFTs]交互的常见例子(https://docs.ton.org/develop/dapps/asset-processing/nfts)。
 
-## 接受 NFT 所有权分配
+## 接受 NFT 所有权分配 {#accepting-nft-ownership-assignment}
 
 指派的 NFT 所有权的通知信息具有以下结构：
 
@@ -16,7 +16,7 @@ message(0x05138d91) NFTOwnershipAssigned {
 }
 ```
 
-使用 [receiver](/book/receive) 函数来接受通知消息。
+使用 [receiver](/zh-cn/book/receive) 函数来接受通知消息。
 
 :::caution
 
@@ -51,7 +51,7 @@ contract SingleNft with Deployable {
 }
 ```
 
-2. 使用 [`StateInit{:tact}`](/book/expressions#init) 和派生的 NFT 项目地址。
+2. 使用 [`StateInit{:tact}`](/zh-cn/book/expressions#initof) 和派生的 NFT 项目地址。
 
 ```tact
 import "@stdlib/deploy";
@@ -99,7 +99,7 @@ contract NftInCollection with Deployable {
 
 ## 转移 NFT 项目
 
-要发送 NFT 项目转移，请使用 [`send(){:tact}`](/book/send)函数。
+要发送 NFT 项目转移，请使用 [`send(){:tact}`](/zh-cn/book/send)函数。
 
 ```tact
 import "@stdlib/deploy";
@@ -142,7 +142,7 @@ contract Example {
 
 ## 获取 NFT 静态信息
 
-请注意，TON Blockchain 不允许合约相互调用 [getters](https://docs.tt-lang.org/book/contracts#getter-functions)。
+请注意，TON Blockchain 不允许合约相互调用 [getters](https://docs.tact-lang.org/book/contracts#getter-functions)。
 要从另一个合约接收数据，您必须交换消息。
 
 ```tact

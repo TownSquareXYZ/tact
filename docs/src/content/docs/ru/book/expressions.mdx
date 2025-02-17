@@ -3,8 +3,6 @@ title: Выражения
 description: На этой странице перечислены все выражения в Tact
 ---
 
-import { Badge } from '@astrojs/starlight/components';
-
 Каждый оператор в Tact формирует выражение, но есть гораздо больше возможностей для раскрытия, поскольку Tact предлагает широкий спектр вариантов выражения на выбор.
 
 :::note
@@ -181,7 +179,7 @@ if (var != null) {
 
 :::
 
-## Создание экземпляра
+## Создание экземпляра {#instantiation}
 
 Вы можете создавать экземпляры следующих типов:
 
@@ -254,9 +252,7 @@ contract ExampleContract {
 
 ## `initOf`
 
-<Badge text="Gas-expensive" title="Использует 500 единиц газа или более" variant="danger" size="medium"/><p/>
-
-Создание экземпляра {#instantiation}
+Выражение `initOf{:tact}` вычисляет начальное состояние, т. е. `StateInit{:tact}` [контракта](/ru/book/contracts):
 
 ```tact
 //                     значения аргументов для функции init() контракта
@@ -275,8 +271,8 @@ initOf ExampleContract(
 
 `StateInit{:tact}` — это встроенная [структура][s], которая состоит из:
 
-| Поле   | Тип                   | Описание                                                                                       |
-| :----- | :-------------------- | :--------------------------------------------------------------------------------------------- |
+| Поле   | Тип                   | Описание                                                                                    |
+| :----- | :-------------------- | :------------------------------------------------------------------------------------------ |
 | `code` | [`Ген{:tact}`][cell]  | начальный код [контракта](/ru/book/contracts) (скомпилированный байт-код)                      |
 | `data` | [`Cell{:tact}`][cell] | начальные данные [контракта](/ru/book/contracts) (аргументы функции `init(){:tact}` контракта) |
 
@@ -299,7 +295,7 @@ contract TheKingPrawn {
 
 :::
 
-[p]: /ru/book/structs-and-messages#structs
+[p]: /ru/book/types#primitive-types
 [клетка]: /ru/book/cells#cells
-[s]: /ru/book/types#primitive-types
+[s]: /ru/book/structs-and-messages#structs
 [m]: /ru/book/structs-and-messages#messages

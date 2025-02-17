@@ -122,7 +122,7 @@ import { Badge } from '@astrojs/starlight/components';
 
 `false{:json}` по умолчанию.
 
-Если установлено значение `true{:json}`, включается отладочный вывод контракта и разрешается использование функции [`dump(){:tact}`](/ref/core-debug#dump), которая полезна для [целей отладки](/book/debug). Если эта опция включена, контракт сообщит, что он был скомпилирован в режиме отладки с использованием метода `supported_interfaces`.
+Если установлено значение `true{:json}`, включается отладочный вывод контракта и разрешается использование функции [`dump(){:tact}`](/ru/ref/core-debug#dump), которая полезна для [целей отладки](/ru/book/debug). Если эта опция включена, контракт сообщит, что он был скомпилирован в режиме отладки с использованием метода `supported_interfaces`.
 
 ```json filename="tact.config.json" {8,14}
 {
@@ -147,15 +147,42 @@ import { Badge } from '@astrojs/starlight/components';
 
 :::note
 
-  Подробнее читайте на специальной странице: [Отладка](/book/debug).
+  Подробнее читайте на специальной странице: [Отладка](/ru/book/debug).
 
 :::
+
+#### `masterchain` {#options-masterchain}
+
+`false{:json}` по умолчанию.
+
+Если установлено значение `true{:json}`, включает поддержку [masterchain](/ru/book/masterchain).
+
+```json filename="tact.config.json" {8,14}
+{
+  "projects": [
+    {
+      "name": "some_prefix",
+      "path": "./contract.tact",
+      "output": "./contract_output",
+      "options": {
+        "masterchain": true
+      }
+    },
+    {
+      "name": "ContractUnderBlueprint",
+      "options": {
+        "masterchain": true
+      }
+    }
+  ]
+}
+```
 
 #### `external` {#options-external}
 
 `false{:json}` по умолчанию.
 
-Если установлено значение `true{:json}`, включает поддержку получения [внешних](/book/external) сообщений.
+Если установлено значение `true{:json}`, включает поддержку получения [внешних](/ru/book/external) сообщений.
 
 ```json filename="tact.config.json" {8,14}
 {
@@ -180,7 +207,7 @@ import { Badge } from '@astrojs/starlight/components';
 
 :::note
 
-  Подробнее читайте на специальной странице: [Внешние сообщения](/book/external).
+  Подробнее читайте на специальной странице: [Внешние сообщения](/ru/book/external).
 
 :::
 
@@ -188,7 +215,7 @@ import { Badge } from '@astrojs/starlight/components';
 
 `false{:json}` по умолчанию.
 
-Если установлено значение `true{:json}`, включает генерацию функции [геттер](/book/contracts#getter-functions) со ссылками IPFS, описывающими ABI контракта.
+Если установлено значение `true{:json}`, включает генерацию функции [геттер](/ru/book/contracts#getter-functions) со ссылками IPFS, описывающими ABI контракта.
 
 ```json filename="tact.config.json" {8,14}
 {
@@ -213,7 +240,7 @@ import { Badge } from '@astrojs/starlight/components';
 
 :::note
 
-  Подробнее читайте на специальной странице: [OTP-003: Самостоятельный отчет ABI](/ref/evolution/otp-003).
+  Подробнее читайте на специальной странице: [OTP-003: Самостоятельный отчет ABI](/ru/ref/evolution/otp-003).
 
 :::
 
@@ -221,7 +248,7 @@ import { Badge } from '@astrojs/starlight/components';
 
 `false{:json}` по умолчанию.
 
-Если установлено значение `true{:json}`, включает генерацию [getter](/book/contracts#getter-functions) со списком интерфейсов, предоставляемых контрактом.
+Если установлено значение `true{:json}`, включает генерацию [getter](/ru/book/contracts#getter-functions) со списком интерфейсов, предоставляемых контрактом.
 
 ```json filename="tact.config.json" {8,14}
 {
@@ -246,7 +273,7 @@ import { Badge } from '@astrojs/starlight/components';
 
 :::note
 
-  Подробнее: [Поддерживаемые интерфейсы](/book/contracts#interfaces).
+  Подробнее: [Поддерживаемые интерфейсы](/ru/book/contracts#interfaces).
 
 :::
 
@@ -364,8 +391,8 @@ import { Badge } from '@astrojs/starlight/components';
 | :---------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------ |
 | `"full"{:json}`                     | (по умолчанию) Запускает весь конвейер компиляции и выдает код FunC, BoC и различные служебные файлы, включая обертки для TypeScript. |
 | `"fullWithDecompilation"{:json}`    | Запускает весь конвейер компиляции как `"full"{:json}`, а также декомпилирует созданный двоичный код в формате BoC.                   |
-| ` funcOnly`{:json}\`\`              | Выводит только промежуточный код FunC, предотвращая дальнейшую компиляцию.                                                            |
-| `"checkOnly"{:json}`.               | Выполняет только проверку синтаксиса и типов, предотвращая дальнейшую компиляцию.                                                     |
+| `"funcOnly"{:json}`                 | Выводит только промежуточный код FunC, предотвращая дальнейшую компиляцию.                                                            |
+| `"checkOnly"{:json}`                | Выполняет только проверку синтаксиса и типов, предотвращая дальнейшую компиляцию.                                                     |
 
 В [Blueprint][bp] `mode` всегда установлен на `"full"{:json}` и не может быть перезаписан.
 

@@ -3,7 +3,7 @@ title: Общие функции
 description: Часто используемые глобальные статические функции из основной библиотеки Tact
 ---
 
-Список наиболее часто используемых встроенных [глобальных статических функций](/book/functions#global-static-functions).
+Список наиболее часто используемых встроенных [глобальных статических функций](/ru/book/functions#global-static-functions).
 
 ## Контекстные
 
@@ -27,7 +27,7 @@ let timeOffset: Int = now() + 1000; // тысяча секунд от now()
 fun myBalance(): Int;
 ```
 
-Возвращает баланс [nanoToncoin](/book/integers#nanotoncoin) смарт-контракта, который был в начале [фазы вычислений](https://docs.ton.org/learn/tvm-instructions/tvm-overview#compute-phase) текущей транзакции.
+Возвращает баланс [nanoToncoin](/ru/book/integers#nanotoncoin) смарт-контракта, который был в начале [фазы вычислений](https://docs.ton.org/learn/tvm-instructions/tvm-overview#compute-phase) текущей транзакции.
 
 Пример использования:
 
@@ -37,7 +37,7 @@ let iNeedADolla: Int = myBalance();
 
 :::caution
 
-  Помните, что [все функции отправки сообщений](/book/send#message-sending-functions) Tact могут изменить _фактический_ баланс контракта, но они _не_ будут обновлять значение, возвращаемое этой функцией.
+  Помните, что [все функции отправки сообщений](/ru/book/send#message-sending-functions) Tact могут изменить _фактический_ баланс контракта, но они _не_ будут обновлять значение, возвращаемое этой функцией.
 
 :::
 
@@ -75,7 +75,7 @@ contract MeSee {
 
 :::caution
 
-  Поведение не определено для [функций получения](/book/contracts#getter-functions), поскольку они не могут иметь отправителя и не могут отправлять сообщения.
+  Поведение не определено для [функций получения](/ru/book/contracts#getter-functions), поскольку они не могут иметь отправителя и не могут отправлять сообщения.
 
 :::
 
@@ -91,13 +91,13 @@ contract MeSee {
 fun context(): Context;
 ```
 
-Возвращает `Context{:tact}` [структуру](/book/structs-and-messages#structs), которая состоит из:
+Возвращает `Context{:tact}` [структуру](/ru/book/structs-and-messages#structs), которая состоит из:
 
 | Поле      | Тип                       | Описание                                                                                                                                                                                                                                                                                                                      |
 | :-------- | :------------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `bounced` | [`Bool{:tact}`][bool]     | [Возвращает](https://ton.org/docs/learn/overviews/addresses#bounceable-vs-non-bounceable-addresses) флаг входящего сообщения.                                                                                                                                                                                                 |
 | `sender`  | [`Address{:tact}`][p]     | Внутренний адрес отправителя в блокчейне TON.                                                                                                                                                                                                                                                                                 |
-| `value`   | [`Int{:tact}`][int]       | Количество [nanoToncoin](/book/integers#nanotoncoin) в сообщении.                                                                                                                                                                                                                                                             |
+| `value`   | [`Int{:tact}`][int]       | Количество [nanoToncoin](/ru/book/integers#nanotoncoin) в сообщении.                                                                                                                                                                                                                                                             |
 | `raw`     | [`Slice{:tact}`][slice]   | Оставшаяся часть сообщения как [`Slice{:tact}`][slice]. Он следует [внутренней структуре сообщений](https://docs.ton.org/develop/smart-contracts/messages#message-layout) TON, начиная с пункта назначения [`Address{:tact}`][p] (`MsgAddressInt` в [нотации TL-B](https://docs.ton.org/develop/data-formats/tl-b-language)). |
 
 Пример использования:
@@ -121,9 +121,9 @@ require(ctx.value != 68 + 1, "Недопустимое количество nano
 fun newAddress(chain: Int, hash: Int): Address;
 ```
 
-Создает новый [`Address{:tact}`][p] на основе [`chain` id](https://ton-blockchain.github.io/docs/#/overviews/TON_blockchain_overview) и закодированного [SHA-256](/ref/core-math#sha256) [значения `hash`](https://docs.ton.org/learn/overviews/addresses#account-id).
+Создает новый [`Address{:tact}`][p] на основе [`chain` id](https://ton-blockchain.github.io/docs/#/overviews/TON_blockchain_overview) и закодированного [SHA-256](/ru/ref/core-math#sha256) [значения `hash`](https://docs.ton.org/learn/overviews/addresses#account-id).
 
-Эта функция пытается разрешить постоянные значения во время [компиляции](/ref/core-comptime) всякий раз, когда это возможно.
+Эта функция пытается разрешить постоянные значения во время [компиляции](/ru/ref/core-comptime) всякий раз, когда это возможно.
 
 Пример использования:
 
@@ -146,7 +146,7 @@ let oldTonFoundationAddr: Address =
 
   [`chain` (Идентификатор воркчейна) в TON Docs](https://docs.ton.org/learn/overviews/addresses#workchain-id)\
 [`hash` (Идентификатор аккаунта) в TON Docs](https://docs.ton.org/learn/overviews/addresses#account-id)\
-[Пакет инициализации контракта (`StateInit{:tact}`)](/book/expressions#initof)
+[Пакет инициализации контракта (`StateInit{:tact}`)](/ru/book/expressions#initof)
 
 :::
 
@@ -156,7 +156,7 @@ let oldTonFoundationAddr: Address =
 fun contractAddress(s: StateInit): Address;
 ```
 
-Вычисляет [`Address{:tact}`][p] смарт-контракта в воркчейне $0$ на основе его [`StateInit{:tact}`](/book/expressions#initof).
+Вычисляет [`Address{:tact}`][p] смарт-контракта в воркчейне $0$ на основе его [`StateInit{:tact}`](/ru/book/expressions#initof).
 
 Пример использования:
 
@@ -170,7 +170,7 @@ let foundMeSome: Address = contractAddress(initOf SomeContract());
 fun contractAddressExt(chain: Int, code: Cell, data: Cell): Address;
 ```
 
-Вычисляет [`Address{:tact}`][p] смарт-контракта на основе идентификатора `chain`, `code` контракта и начального состояния `data` контракта. Используйте выражение [`initOf{:tact}`](/book/expressions#initof) для получения начального `code` и начальных `data` данного контракта.
+Вычисляет [`Address{:tact}`][p] смарт-контракта на основе идентификатора `chain`, `code` контракта и начального состояния `data` контракта. Используйте выражение [`initOf{:tact}`](/ru/book/expressions#initof) для получения начального `code` и начальных `data` данного контракта.
 
 Пример использования:
 
@@ -187,8 +187,8 @@ let hereBeDragons: Address = contractAddressExt(0, initPkg.code, initPkg.data);
 
 :::note
 
-  Чтобы эта функция работала, параметр компилятора `debug` должен быть установлен на `true{:tact}` для текущего проекта в [файле конфигурации](/book/config).\
-Подробнее об отладке читайте на специальной странице: [Отладка](/book/debug).
+  Чтобы эта функция работала, параметр компилятора `debug` должен быть установлен на `true{:tact}` для текущего проекта в [файле конфигурации](/ru/book/config).\
+Подробнее об отладке читайте на специальной странице: [Отладка](/ru/book/debug).
 
 :::
 
@@ -200,9 +200,9 @@ let hereBeDragons: Address = contractAddressExt(0, initPkg.code, initPkg.data);
 fun send(params: SendParameters);
 ```
 
-[Помещает сообщение](/book/send#outbound-message-processing) в очередь для отправки с использованием [`SendParameters{:tact}`](/book/send) [структуры](/book/structs-and-messages#structs).
+[Помещает сообщение](/ru/book/send#outbound-message-processing) в очередь для отправки с использованием [`SendParameters{:tact}`](/ru/book/send) [структуры](/ru/book/structs-and-messages#structs).
 
-Попытки поставить в очередь сообщения стоимостью более $255$ приводят к возникновению исключения с [кодом выхода 33](/book/exit-codes#33): `Список действий слишком длинный`.
+Попытки поставить в очередь сообщения стоимостью более $255$ приводят к возникновению исключения с [кодом выхода 33](/ru/book/exit-codes#33): `Список действий слишком длинный`.
 
 Пример использования:
 
@@ -216,9 +216,9 @@ send(SendParameters{
 
 :::note[Useful Полезные ссылки
 
-  [Отправка сообщений в Книге](/book/send)\
-[Сообщение `mode` в Книге](/book/message-mode)\
-[Общение с одним контрактом в подготовительной книге](/cookbook/single-communication)
+  [Отправка сообщений в Книге](/ru/book/send)\
+[Сообщение `mode` в Книге](/ru/book/message-mode)\
+[Общение с одним контрактом в подготовительной книге](/ru/cookbook/single-communication)
 
 :::
 
@@ -228,9 +228,9 @@ send(SendParameters{
 fun emit(body: Cell);
 ```
 
-[Помещает сообщение](/book/send#outbound-message-processing) `body` в очередь для отправки во внешний мир с целью его регистрации и последующего анализа off-chain. Сообщение не имеет получателя и является более экономичным по сравнению с использованием любых других функций отправки сообщений Tact.
+[Помещает сообщение](/ru/book/send#outbound-message-processing) `body` в очередь для отправки во внешний мир с целью его регистрации и последующего анализа off-chain. Сообщение не имеет получателя и является более экономичным по сравнению с использованием любых других функций отправки сообщений Tact.
 
-Попытки поставить в очередь сообщения стоимостью более $255$ приводят к возникновению исключения с [кодом выхода 33](/book/exit-codes#33): `Список действий слишком длинный`.
+Попытки поставить в очередь сообщения стоимостью более $255$ приводят к возникновению исключения с [кодом выхода 33](/ru/book/exit-codes#33): `Список действий слишком длинный`.
 
 Пример использования:
 
@@ -240,13 +240,13 @@ emit("Поймай меня, если сможешь, мистер Холмс".a
 
 :::note
 
-  Для анализа вызовов `emit(){:tact}` необходимо просмотреть [внешние сообщения](/book/external), созданные контрактом.
+  Для анализа вызовов `emit(){:tact}` необходимо просмотреть [внешние сообщения](/ru/book/external), созданные контрактом.
 
-  Подробнее: [Ведение журнала с помощью `emit(){:tact}`](/book/debug#logging).
+  Подробнее: [Ведение журнала с помощью `emit(){:tact}`](/ru/book/debug#logging).
 
 :::
 
-[p]: /book/types#primitive-types
-[bool]: /book/types#booleans
-[int]: /book/integers
-[нарезать]: /book/cells#slices
+[p]: /ru/book/types#primitive-types
+[bool]: /ru/book/types#booleans
+[int]: /ru/book/integers
+[нарезать]: /ru/book/cells#slices

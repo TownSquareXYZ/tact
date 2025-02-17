@@ -3,7 +3,7 @@ title: "@stdlib/ownable"
 description: Предоставляет типажи для контрактов с возможностью владения, которые часто требуются другим типажам
 ---
 
-Предоставляет [типажи](/book/types#composite-types) для собственных контрактов. Эти типажи часто требуются другим типажам.
+Предоставляет [типажи](/ru/book/types#composite-types) для собственных контрактов. Эти типажи часто требуются другим типажам.
 
 Чтобы использовать эту библиотеку, импортируйте `@stdlib/ownable`:
 
@@ -35,9 +35,9 @@ message ChangeOwnerOk {
 
 ### Ownable
 
-[Типаж](/book/types#composite-types) `Ownable{:tact}` объявляет владельца (нередактируемого) [контракта](/book/contracts) и предоставляет вспомогательную функцию `requireOwner(){:tact}`, которая проверяет, что сообщение было отправлено владельцем.
+[Типаж](/ru/book/types#composite-types) `Ownable{:tact}` объявляет владельца (нередактируемого) [контракта](/ru/book/contracts) и предоставляет вспомогательную функцию `requireOwner(){:tact}`, которая проверяет, что сообщение было отправлено владельцем.
 
-Этот [типаж](/book/types#composite-types) требует объявления поля `owner: Address{:tact}` и предоставляет [функцию получения](/book/functions#getter-functions) `owner(){:tact}`, которая считывает его из [контракта](/book/contracts).
+Этот [типаж](/ru/book/types#composite-types) требует объявления поля `owner: Address{:tact}` и предоставляет [функцию получения](/ru/book/functions#getter-functions) `owner(){:tact}`, которая считывает его из [контракта](/ru/book/contracts).
 
 Исходный код:
 
@@ -72,9 +72,9 @@ contract ExampleContract with Ownable {
 
 ### OwnableTransferable
 
-`OwnableTransferable{:tact}` — это расширение [`Ownable{:tact}`](#ownable), которое позволяет передавать право собственности на контракт другому адресу. Он предоставляет безопасный дескриптор [сообщения](/book/structs-and-messages#messages) [`ChangeOwner{:tact}`](#changeowner), который может быть вызван владельцем для передачи права собственности.
+`OwnableTransferable{:tact}` — это расширение [`Ownable{:tact}`](#ownable), которое позволяет передавать право собственности на контракт другому адресу. Он предоставляет безопасный дескриптор [сообщения](/ru/book/structs-and-messages#messages) [`ChangeOwner{:tact}`](#changeowner), который может быть вызван владельцем для передачи права собственности.
 
-Если запрос на передачу права собственности выполнен успешно, контракт ответит [`ChangeOwnerOk{:tact}`](#changeownerok) [сообщением](/book/structs-and-messages#messages).
+Если запрос на передачу права собственности выполнен успешно, контракт ответит [`ChangeOwnerOk{:tact}`](#changeownerok) [сообщением](/ru/book/structs-and-messages#messages).
 
 Исходный код:
 

@@ -1,0 +1,48 @@
+---
+title: Обзор стандартных библиотек
+description: Некоторые библиотеки поставляются вместе с Tact компилятором, но не подключаются к вашему проекту автоматически, пока вы не сделаете это сами
+prev:
+  link: /ru/ref/core-advanced
+  label: Advanced
+---
+
+Некоторые библиотеки (также называемые стандартные библиотеки или stdlibs) поставляются вместе с Tact компилятором, но не подключаются к вашему проекту автоматически, пока вы не сделаете это сами.
+
+Чтобы импортировать любую стандартную библиотеку, используйте [ключевое слово `import{:tact}`](/ru/book/import), за которым следует имя этой библиотеки в [строке][p], как показано ниже:
+
+```tact
+// Это подключит всё из @stdlib/deploy в ваш код:
+import "@stdlib/deploy";
+```
+
+## Список стандартных библиотек: {#list}
+
+| Библиотека                  | Описание                                                                     | Часто используемые API                                                  |
+| :-------------------------- | :--------------------------------------------------------------------------- | :---------------------------------------------------------------------- |
+| [`@stdlib/config`][1]       | Получение config и elector address.                                          | [`getConfigAddress(){:tact}`][gca], [`getElectorAddress(){:tact}`][gea] |
+| [`@stdlib/content`][2]      | Кодирование off-chain ссылок [strings][p] в [`Cell{:tact}`][cell].           | [`createOffchainContent(){:tact}`][coff]                                |
+| [`@stdlib/deploy`][3]       | Единый механизм развертывания.                                               | [`Deployable{:tact}`][dep], [`FactoryDeployable{:tact}`][fcd]           |
+| [`@stdlib/dns`][4]          | Разрешение имен [DNS][dns].                                                  | [`DNSResolver{:tact}`][dnsr], [`dnsInternalVerify(){:tact}`][dnsi]      |
+| [`@stdlib/ownable`][5]      | Трейты для управления собственностью.                                        | [`Ownable{:tact}`][own], [`OwnableTransferable{:tact}`][ownt]           |
+| [`@stdlib/stoppable`][6]    | Трейты, позволяющие останавливать контракты. Требуется [@stdlib/ownable][5]. | [`Stoppable{:tact}`][stp], [`Resumable{:tact}`][res]                    |
+
+[1]: /ru/ref/stdlib-config
+[gca]: /ru/ref/stdlib-config#getconfigaddress
+[gea]: /ru/ref/stdlib-config#getelectoraddress
+[2]: /ru/ref/stdlib-content
+[coff]: /ru/ref/stdlib-content#createoffchaincontent
+[3]: /ru/ref/stdlib-deploy
+[dep]: /ru/ref/stdlib-deploy#deployable
+[fcd]: /ru/ref/stdlib-deploy#factorydeployable
+[4]: /ru/ref/stdlib-dns
+[dnsr]: /ru/ref/stdlib-dns#dnsresolver
+[dnsi]: /ru/ref/stdlib-dns#dnsinternalverify
+[5]: /ru/ref/stdlib-ownable
+[own]: /ru/ref/stdlib-ownable#ownable
+[ownt]: /ru/ref/stdlib-ownable#ownabletransferable
+[6]: /ru/ref/stdlib-stoppable
+[stp]: /ru/ref/stdlib-stoppable#stoppable
+[res]: /ru/ref/stdlib-stoppable#resumable
+[p]: /ru/book/types#primitive-types
+[cell]: /ru/book/cells#cells
+[dns]: https://docs.ton.org/participate/web3/dns

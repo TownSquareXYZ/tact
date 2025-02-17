@@ -1,0 +1,39 @@
+---
+title: "@stdlib/content"
+description: Предоставляет функцию для кодирования off-chain ссылки из строки в ячейку
+---
+
+Предоставляет функцию для кодирования off-chain ссылки из [`String{:tact}`][p] в [`Cell{:tact}`][cell].
+
+Чтобы использовать эту библиотеку, импортируйте `@stdlib/content`:
+
+```tact
+import "@stdlib/content";
+```
+
+## Функции
+
+### createOffchainContent
+
+```tact
+fun createOffchainContent(link: String): Cell;
+```
+
+Кодирует off-chain `link` из [`String{:tact}`][p] в [`Cell{:tact}`][cell].
+
+Исходный код:
+
+```tact
+fun createOffchainContent(link: String): Cell {
+    let builder: StringBuilder = beginStringFromBuilder(beginCell().storeUint(0x01, 8));
+    builder.append(link);
+    return builder.toCell();
+}
+```
+
+## Источники
+
+- [content.tact](https://github.com/tact-lang/tact/blob/61541b7783098e1af669faccd7d2334c10981c72/stdlib/libs/content.tact)
+
+[p]: /ru/book/types#primitive-types
+[cell]: /ru/book/cells#cells

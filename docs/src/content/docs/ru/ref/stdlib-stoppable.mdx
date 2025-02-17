@@ -1,0 +1,106 @@
+---
+title: "@stdlib/stoppable"
+description: Предоставляет типажи, позволяющие остановить контракт, которые полезны в аварийных режимах или режимах технического обслуживания
+---
+
+Предоставляет [типажи](/ru/book/types#composite-types), позволяющие остановить [контракт](/ru/book/contracts). Полезно для аварийных режимов или режимов обслуживания. Требует типаж [`Ownable{:tact}`](/ru/ref/stdlib-ownable#ownable) из [`@stdlib/ownable`](/ru/ref/stdlib-ownable). Этот типаж управляет одним флагом `stopped` в контракте, а обработка состояния остановки должна выполняться в самом контракте.
+
+Чтобы использовать эту библиотеку, импортируйте `@stdlib/stoppable`:
+
+```tact
+import "@stdlib/stoppable"; // это также автоматически импортирует import @stdlib/ownable too!
+```
+
+## Типажи
+
+### Останавливаемый {#stoppable}
+
+[Типаж](/ru/book/types#composite-types) `Stoppable{:tact}` реализует приемник для [сообщения](/ru/book/structs-and-messages#messages) [строку](/ru/book/types#primitive-types) "Stop", который может быть отправлен владельцем, реализует `stopped(){:tact}` [функцию получения](/ru/book/functions#getter-functions), которая возвращает `true{:tact}`, если контракт остановлен (или `false{:tact}` в противном случае), и предоставляет частные (не получающие) функции `requireNotStopped(){:tact}` и `requireStopped(){:tact}`.
+
+Исходный код:
+
+```tact
+@interface("org.ton.stoppable")
+trait Stoppable with Ownable {
+    stopped: Bool;
+    owner: Address;
+
+    fun requireNotStopped() {
+        require(!self.stopped, "Контракт остановлен");
+    }
+
+    fun requireStopped() {
+        require(self.stopped, "Контракт не остановлен");
+    }
+
+    receive("Остановка") {
+        self.requireOwner();
+        self.requireNotStopped();
+        self.stopped = true;
+        self.reply("Stopped".asComment());
+    }
+
+    get fun stopped(): Bool {
+        return self.stopped;
+    }
+}
+```
+
+Пример использования:
+
+```tact /Stoppable/
+import "@stdlib/ownable";
+import "@stdlib/stoppable";
+
+contract MyContract with Stoppable {
+    owner: Address;
+    stopped: Bool;
+
+    init(owner: Address) {
+        self.owner = owner;
+        self.stopped = false;
+    }
+}
+```
+
+### Возобновляемый {#resumable}
+
+`Resumable{:tact}` [типаж](/ru/book/types#composite-types) расширяет черту [`Stoppable{:tact}`](#stoppable) и позволяет возобновить выполнение [контракта](/ru/book/contracts).
+
+Исходный код:
+
+```tact
+@interface("org.ton.resumable")
+trait Resumable with Stoppable {
+    stopped: Bool;
+    owner: Address;
+
+    receive("Возобновить") {
+        self.requireOwner();
+        self.requireStopped();
+        self.stopped = false;
+        self.reply("Возобновлено".asComment());
+    }
+}
+```
+
+Пример использования:
+
+```tact /Resumable/
+import "@stdlib/ownable";
+import "@stdlib/stoppable";
+
+contract MyContract with Resumable {
+    owner: Address;
+    stopped: Bool;
+
+    init(owner: Address) {
+        self.owner = owner;
+        self.stopped = false;
+    }
+}
+```
+
+## Источники
+
+- [stoppable.tact](https://github.com/tact-lang/tact/blob/61541b7783098e1af669faccd7d2334c10981c72/stdlib/libs/stoppable.tact)

@@ -1,0 +1,252 @@
+---
+title: Общие функции
+description: Часто используемые глобальные статические функции из основной библиотеки Tact
+---
+
+Список наиболее часто используемых встроенных [глобальных статических функций](/ru/book/functions#global-static-functions).
+
+## Контекстные
+
+### now
+
+```tact
+fun now(): Int
+```
+
+Возвращает текущее [время Unix](https://en.wikipedia.org/wiki/Unix_time).
+
+Пример использования:
+
+```tact
+let timeOffset: Int = now() + 1000; // тысяча секунд от now()
+```
+
+### myBalance
+
+```tact
+fun myBalance(): Int;
+```
+
+Возвращает баланс [nanoToncoin](/ru/book/integers#nanotoncoin) смарт-контракта, который был в начале [фазы вычислений](https://docs.ton.org/learn/tvm-instructions/tvm-overview#compute-phase) текущей транзакции.
+
+Пример использования:
+
+```tact
+let iNeedADolla: Int = myBalance();
+```
+
+:::caution
+
+  Помните, что [все функции отправки сообщений](/ru/book/send#message-sending-functions) Tact могут изменить _фактический_ баланс контракта, но они _не_ будут обновлять значение, возвращаемое этой функцией.
+
+:::
+
+### myAddress
+
+```tact
+fun myAddress(): Address;
+```
+
+Возвращает адрес текущего смарт-контракта как [`Address{:tact}`][p].
+
+Пример использования:
+
+```tact
+let meMyselfAndI: Address = myAddress();
+```
+
+### sender
+
+```tact
+fun sender(): Address;
+```
+
+Возвращает [`Address{:tact}`][p] отправителя текущего сообщения.
+
+Пример использования:
+
+```tact
+contract MeSee {
+    receive() {
+        let whoSentMeMessage: Address = sender();
+    }
+}
+```
+
+:::caution
+
+  Поведение не определено для [функций получения](/ru/book/contracts#getter-functions), поскольку они не могут иметь отправителя и не могут отправлять сообщения.
+
+:::
+
+:::note
+
+  Чтобы сократить потребление газа, предпочитайте использовать эту функцию вместо вызова [`context().sender{:tact}`](#context), когда вам нужно знать только отправителя сообщения.
+
+:::
+
+### context
+
+```tact
+fun context(): Context;
+```
+
+Возвращает `Context{:tact}` [структуру](/ru/book/structs-and-messages#structs), которая состоит из:
+
+| Поле      | Тип                       | Описание                                                                                                                                                                                                                                                                                                                      |
+| :-------- | :------------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bounced` | [`Bool{:tact}`][bool]     | [Возвращает](https://ton.org/docs/learn/overviews/addresses#bounceable-vs-non-bounceable-addresses) флаг входящего сообщения.                                                                                                                                                                                                 |
+| `sender`  | [`Address{:tact}`][p]     | Внутренний адрес отправителя в блокчейне TON.                                                                                                                                                                                                                                                                                 |
+| `value`   | [`Int{:tact}`][int]       | Количество [nanoToncoin](/ru/book/integers#nanotoncoin) в сообщении.                                                                                                                                                                                                                                                             |
+| `raw`     | [`Slice{:tact}`][slice]   | Оставшаяся часть сообщения как [`Slice{:tact}`][slice]. Он следует [внутренней структуре сообщений](https://docs.ton.org/develop/smart-contracts/messages#message-layout) TON, начиная с пункта назначения [`Address{:tact}`][p] (`MsgAddressInt` в [нотации TL-B](https://docs.ton.org/develop/data-formats/tl-b-language)). |
+
+Пример использования:
+
+```tact
+let ctx: Context = context();
+require(ctx.value != 68 + 1, "Недопустимое количество nanoToncoin, пока!");
+```
+
+:::note
+
+  Обратите внимание, что если вам нужно только узнать, кто отправил сообщение, используйте функцию [`sender(){:tact}`](#sender), так как она потребляет меньше газа.
+
+:::
+
+## Адресация
+
+### newAddress
+
+```tact
+fun newAddress(chain: Int, hash: Int): Address;
+```
+
+Создает новый [`Address{:tact}`][p] на основе [`chain` id](https://ton-blockchain.github.io/docs/#/overviews/TON_blockchain_overview) и закодированного [SHA-256](/ru/ref/core-math#sha256) [значения `hash`](https://docs.ton.org/learn/overviews/addresses#account-id).
+
+Эта функция пытается разрешить постоянные значения во время [компиляции](/ru/ref/core-comptime) всякий раз, когда это возможно.
+
+Пример использования:
+
+```tact
+let oldTonFoundationAddr: Address =
+    newAddress(0, 0x83dfd552e63729b472fcbcc8c45ebcc6691702558b68ec7527e1ba403a0f31a8);
+    //         ↑  ------------------------------------------------------------------
+    //         |  ↑
+    //         |  sha-256 хэш пакета init контракта (StateInit)
+    //         chain id: 0 эот воркчейн, -1 это мастерчейн
+```
+
+:::caution
+
+  Убедитесь, что вы указали только поддерживаемые идентификаторы цепочек: $0$ для базовой цепочки и $-1$ для мастерчейна.
+
+:::
+
+:::note[Useful Полезные ссылки:]
+
+  [`chain` (Идентификатор воркчейна) в TON Docs](https://docs.ton.org/learn/overviews/addresses#workchain-id)\
+[`hash` (Идентификатор аккаунта) в TON Docs](https://docs.ton.org/learn/overviews/addresses#account-id)\
+[Пакет инициализации контракта (`StateInit{:tact}`)](/ru/book/expressions#initof)
+
+:::
+
+### contractAddress
+
+```tact
+fun contractAddress(s: StateInit): Address;
+```
+
+Вычисляет [`Address{:tact}`][p] смарт-контракта в воркчейне $0$ на основе его [`StateInit{:tact}`](/ru/book/expressions#initof).
+
+Пример использования:
+
+```tact
+let foundMeSome: Address = contractAddress(initOf SomeContract());
+```
+
+### contractAddressExt
+
+```tact
+fun contractAddressExt(chain: Int, code: Cell, data: Cell): Address;
+```
+
+Вычисляет [`Address{:tact}`][p] смарт-контракта на основе идентификатора `chain`, `code` контракта и начального состояния `data` контракта. Используйте выражение [`initOf{:tact}`](/ru/book/expressions#initof) для получения начального `code` и начальных `data` данного контракта.
+
+Пример использования:
+
+```tact
+let initPkg: StateInit = initOf SomeContract();
+let hereBeDragons: Address = contractAddressExt(0, initPkg.code, initPkg.data);
+```
+
+:::caution
+
+  Убедитесь, что вы указали только поддерживаемые идентификаторы цепочек: $0$ для бейсчейна и $-1$ для мастерчейна.
+
+:::
+
+:::note
+
+  Чтобы эта функция работала, параметр компилятора `debug` должен быть установлен на `true{:tact}` для текущего проекта в [файле конфигурации](/ru/book/config).\
+Подробнее об отладке читайте на специальной странице: [Отладка](/ru/book/debug).
+
+:::
+
+## Комуникация
+
+### send
+
+```tact
+fun send(params: SendParameters);
+```
+
+[Помещает сообщение](/ru/book/send#outbound-message-processing) в очередь для отправки с использованием [`SendParameters{:tact}`](/ru/book/send) [структуры](/ru/book/structs-and-messages#structs).
+
+Попытки поставить в очередь сообщения стоимостью более $255$ приводят к возникновению исключения с [кодом выхода 33](/ru/book/exit-codes#33): `Список действий слишком длинный`.
+
+Пример использования:
+
+```tact
+send(SendParameters{
+    to: sender(),    // обратно отправителю,,
+    value: ton("1"), // с 1 Toncoin (1_000_000_000 nanoToncoin),
+                     // и без тела сообщения
+});
+```
+
+:::note[Useful Полезные ссылки
+
+  [Отправка сообщений в Книге](/ru/book/send)\
+[Сообщение `mode` в Книге](/ru/book/message-mode)\
+[Общение с одним контрактом в подготовительной книге](/ru/cookbook/single-communication)
+
+:::
+
+### emit
+
+```tact
+fun emit(body: Cell);
+```
+
+[Помещает сообщение](/ru/book/send#outbound-message-processing) `body` в очередь для отправки во внешний мир с целью его регистрации и последующего анализа off-chain. Сообщение не имеет получателя и является более экономичным по сравнению с использованием любых других функций отправки сообщений Tact.
+
+Попытки поставить в очередь сообщения стоимостью более $255$ приводят к возникновению исключения с [кодом выхода 33](/ru/book/exit-codes#33): `Список действий слишком длинный`.
+
+Пример использования:
+
+```tact
+emit("Поймай меня, если сможешь, мистер Холмс".asComment()); // asComment() преобразует строку в ячейку
+```
+
+:::note
+
+  Для анализа вызовов `emit(){:tact}` необходимо просмотреть [внешние сообщения](/ru/book/external), созданные контрактом.
+
+  Подробнее: [Ведение журнала с помощью `emit(){:tact}`](/ru/book/debug#logging).
+
+:::
+
+[p]: /ru/book/types#primitive-types
+[bool]: /ru/book/types#booleans
+[int]: /ru/book/integers
+[нарезать]: /ru/book/cells#slices

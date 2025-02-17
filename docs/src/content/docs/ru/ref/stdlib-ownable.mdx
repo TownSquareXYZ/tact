@@ -1,0 +1,115 @@
+---
+title: "@stdlib/ownable"
+description: Предоставляет типажи для контрактов с возможностью владения, которые часто требуются другим типажам
+---
+
+Предоставляет [типажи](/ru/book/types#composite-types) для собственных контрактов. Эти типажи часто требуются другим типажам.
+
+Чтобы использовать эту библиотеку, импортируйте `@stdlib/ownable`:
+
+```tact
+import "@stdlib/ownable";
+```
+
+## Сообщения
+
+### ChangeOwner
+
+```tact
+message ChangeOwner {
+    queryId: Int as uint64;
+    newOwner: Address;
+}
+```
+
+### ChangeOwnerOk
+
+```tact
+message ChangeOwnerOk {
+    queryId: Int as uint64;
+    newOwner: Address;
+}
+```
+
+## Типажи
+
+### Ownable
+
+[Типаж](/ru/book/types#composite-types) `Ownable{:tact}` объявляет владельца (нередактируемого) [контракта](/ru/book/contracts) и предоставляет вспомогательную функцию `requireOwner(){:tact}`, которая проверяет, что сообщение было отправлено владельцем.
+
+Этот [типаж](/ru/book/types#composite-types) требует объявления поля `owner: Address{:tact}` и предоставляет [функцию получения](/ru/book/functions#getter-functions) `owner(){:tact}`, которая считывает его из [контракта](/ru/book/contracts).
+
+Исходный код:
+
+```tact
+@interface("org.ton.ownable")
+trait Ownable {
+    owner: Address;
+
+    fun requireOwner() {
+        nativeThrowUnless(132, sender() == self.owner);
+    }
+
+    get fun owner(): Address {
+        return self.owner;
+    }
+}
+```
+
+Пример использования:
+
+```tact /Ownable/
+import "@stdlib/ownable";
+
+contract ExampleContract with Ownable {
+    owner: Address;
+
+    init(owner: Address) {
+        self.owner = owner;
+    }
+}
+```
+
+### OwnableTransferable
+
+`OwnableTransferable{:tact}` — это расширение [`Ownable{:tact}`](#ownable), которое позволяет передавать право собственности на контракт другому адресу. Он предоставляет безопасный дескриптор [сообщения](/ru/book/structs-and-messages#messages) [`ChangeOwner{:tact}`](#changeowner), который может быть вызван владельцем для передачи права собственности.
+
+Если запрос на передачу права собственности выполнен успешно, контракт ответит [`ChangeOwnerOk{:tact}`](#changeownerok) [сообщением](/ru/book/structs-and-messages#messages).
+
+Исходный код:
+
+```tact
+@interface("org.ton.ownable.transferable.v2")
+trait OwnableTransferable with Ownable {
+    owner: Address;
+
+    receive(msg: ChangeOwner) {
+        // Проверка, является ли отправитель владельцем
+        self.requireOwner();
+
+        // Обновление владельца
+        self.owner = msg.newOwner;
+
+        // Результат ответа
+        self.reply(ChangeOwnerOk{ queryId: msg.queryId, newOwner: msg.newOwner }.toCell());
+    }
+}
+```
+
+Пример использования:
+
+```tact /OwnableTransferable/
+import "@stdlib/ownable";
+
+contract ExampleContract with OwnableTransferable {
+    owner: Address;
+
+    init(owner: Address) {
+        self.owner = owner;
+    }
+}
+```
+
+## Источники
+
+- [ownable.tact](https://github.com/tact-lang/tact/blob/61541b7783098e1af669faccd7d2334c10981c72/stdlib/libs/ownable.tact)

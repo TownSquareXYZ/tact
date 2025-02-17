@@ -1,0 +1,378 @@
+---
+title: Структуры данных
+description: На этой странице представлен удобный набор структур данных, реализованных в Tact для повседневных задач и не только
+---
+
+Структуры данных — это форматы организации, управления и хранения данных, которые обычно выбираются для обеспечения эффективного доступа к данным. Если говорить точнее, структура данных - это набор значений данных, их взаимосвязей, а также функций или операций, которые можно применить к данным.
+
+На этой странице представлен удобный набор структур данных, реализованных в Tact для повседневных задач и не только.
+
+Все перечисленные здесь структуры данных созданы с помощью встроенного типа [`map<K, V>{:tact}`][map]. Описание и основные способы использования map смотрите на [специальной странице в книге][map].
+
+## Массив {#array}
+
+[Массив (array)](https://en.wikipedia.org/wiki/Array_(data_structure)) - это структура данных, состоящая из непрерывного блока памяти, который представляет собой набор элементов одинакового объема памяти, каждый из которых идентифицируется как минимум одним ключом массива или _индексом_.
+
+Следующий пример эмулирует массив с помощью [`map<Int, V>{:tact}`][map] обернутый в [структуру (Struct)](/ru/book/structs-and-messages#structs), где `V{:tact}` может быть любым из [допустимых типов значений](/ru/book/maps#allowed-types) map:
+
+```tact
+import "@stdlib/deploy"; // для развертываемого трейта
+
+struct Array {
+    m: map<Int as uint16, Int>; // массив значений Int реализованный как карта соответствия Ints to Ints,
+                                //  с сериализацией ключей в формат uint16 для экономии памяти
+    length: Int = 0;            // длина массива, по умолчанию равна 0
+}
+
+// Верхняя граница константы времени компиляции для нашей карты, представляющей массив.
+const MaxArraySize: Int = 5_000; // 5,000 entries max, to stay reasonably far from limits
+
+// Функция мутации расширения для добавления новых записей в конец массива
+extends mutates fun append(self: Array, item: Int) {
+    require(self.length + 1 <= MaxArraySize, "No space in the array left for new items!");
+
+    self.m.set(self.length, item); // установка записи (пары ключ-значение)
+    self.length += 1;              // увеличение поля длины
+}
+
+// Функция мутации расширения для вставки новых записей по заданному индексу
+extends mutates fun insert(self: Array, item: Int, idx: Int) {
+    require(self.length + 1 <= MaxArraySize, "No space in the array left for new items!");
+    require(idx >= 0, "Index of the item cannot be negative!");
+    require(idx < self.length, "Index is out of array bounds!");
+
+    // сдвиг всех элементов от указанного индекса вправо
+    let i: Int = self.length; // это не опечатка, так как нужно начинать с несуществующего места
+    while (i > idx) {
+        // обратите внимание, что мы используем оператор !!, так как точно знаем, что значение существует
+        self.m.set(i, self.m.get(i - 1)!!);
+        i -= 1;
+    }
+
+    // И вставляем новый элемент
+    self.m.set(idx, item); // установка записи (пары ключ-значение)
+    self.length += 1;      // увеличение поля длины
+}
+
+// Расширяющая функция для получения значения по указанному индексу
+extends fun getIdx(self: Array, idx: Int): Int {
+    require(self.length > 0, "No items in the array!");
+    require(idx >= 0, "Index of the item cannot be negative!");
+    require(idx < self.length, "Index is out of array bounds!");
+
+    // Обратите внимание, что мы используем оператор !!, так как точно знаем, что значение существует
+    return self.m.get(idx)!!;
+}
+
+// Расширяющая функция для возвращения последнего значения
+extends fun getLast(self: Array): Int {
+    require(self.length > 0, "No items in the array!");
+
+    // Обратите внимание, что мы используем оператор !!, так как точно знаем, что значение существует
+    return self.m.get(self.length - 1)!!;
+}
+
+// Расширяющая мутационная функция для удаления элемента по указанному индексу и возврата его значения
+extends mutates fun deleteIdx(self: Array, idx: Int): Int {
+    require(self.length > 0, "No items in the array to delete!");
+    require(idx >= 0, "Index of the item cannot be negative!");
+    require(idx < self.length, "Index is out of array bounds!");
+
+    // Запомните значение, которое будет удалено
+    let memorized: Int = self.m.get(idx)!!;
+
+    // Перемещение всех элементов из idx и включительно влево
+    let i: Int = idx;
+    while (i + 1 < self.length) {
+        // Обратите внимание, что мы используем оператор !!, так как точно знаем, что значение существует
+        self.m.set(i, self.m.get(i + 1)!!);
+        i += 1;
+    }
+
+    self.m.set(self.length - 1, null); // удаление последнего элемента
+    self.length -= 1;                  // уменьшение поля длины
+
+    return memorized;
+}
+
+// Расширяющая мутационная функция для удаления последнего элемента и возврата его значения
+extends fun deleteLast(self: Array): Int {
+    require(self.length > 0, "No items in the array!");
+
+    // Обратите внимание, что мы используем оператор !!, так как точно знаем, что значение существует
+    let lastItem: Int = self.m.get(self.length - 1)!!;
+    self.m.set(self.length - 1, null); // удаление записи
+    self.length -= 1;                  // уменьшение поля длины
+
+    return lastItem;
+}
+
+// Расширяющая функция для удаления всех элементов из массива
+extends mutates fun deleteAll(self: Array) {
+    self.m = emptyMap();
+    self.length = 0;
+}
+
+// Глобальная статическая функция для создания пустого массива
+fun emptyArray(): Array {
+    return Array{m: emptyMap(), length: 0}; // длина по умолчанию равна 0
+}
+
+// Контракт, эмулирующий массив с использованием map
+contract MapAsArray with Deployable {
+    // Постоянные переменные состояния
+    array: Array;
+
+    // Функция конструктора (инициализации) контракта
+    init() {
+        self.array = emptyArray();
+    }
+
+    // Внутренний обработчик сообщений, отвечающий на строковое сообщение "append"
+    receive("append") {
+        // Добавление нового элемента
+        self.array.append(42);
+    }
+
+    // Внутренний обработчик сообщений, отвечающий на строковое сообщение "delete_5h"
+    receive("delete_5th") {
+        // Удалите 5й элемент, если он существует, и верните его значение, или вызовите ошибку
+        self.reply(self.array.deleteIdx(4).toCoinsString().asComment()); // смещение индекса 0 + 4 дает 5й элемент
+    }
+
+    // Внутренний обработчик сообщений, отвечающий на строковое сообщение "del_last"
+    receive("del_last") {
+        // Удалите последний элемент, верните его значение или вызовите ошибку
+        self.reply(self.array.deleteLast().toCoinsString().asComment());
+    }
+
+    // Внутренний обработчик сообщений, отвечающий на строковое сообщение "get_last"
+    receive("get_last") {
+        // Верните последний элемент массива, если он существует, или вызовите ошибку
+        self.reply(self.array.getLast().toCoinsString().asComment());
+    }
+
+    // Внутренний обработчик сообщений, отвечающий на строковое сообщение "delete_all"
+    receive("delete_all") {
+        self.array.deleteAll();
+    }
+}
+```
+
+## Стек {#stack}
+
+[Стек (stack)](https://en.wikipedia.org/wiki/Stack_(abstract_data_type)) - это структура данных, состоящая из набора элементов с двумя основными операциями:
+
+- push - добавление элемента в конец коллекции
+- pop - удаление последнего добавленного элемента
+
+Следующий пример эмулирует стек с использованием [`map<Int, V>{:tact}`][map] обернутого в [структуру (Struct)](/ru/book/structs-and-messages#structs), где `V{:tact}` может быть любым из [разрешенных типов значений](/ru/book/maps#allowed-types) для map:
+
+```tact
+import "@stdlib/deploy"; // для развертываемого трейта
+
+struct Stack {
+    m: map<Int as uint16, Int>; // стек значений Int, как карта Ints to Ints,
+                                // с сериализацией ключей в uint16 для экономии места
+    length: Int = 0;            // длина стека, по умолчанию равна 0
+}
+
+// Верхняя граница константы времени компиляции для нашей карты, представляющей стек.
+const MaxStackSize: Int = 5_000; // Максимум 5,000 элементов, чтобы избежать приближения к ограничениям
+
+// Расширяющая мутационная функция для добавления новых элементов в конец стека
+extends mutates fun push(self: Stack, item: Int) {
+    require(self.length + 1 <= MaxStackSize, "No space in the stack left for new items!");
+
+    self.m.set(self.length, item); // установка элемента (пары ключ-значение)
+    self.length += 1;              // увеличение поля длины
+}
+
+// Расширяющая мутационная функция для удаления последнего элемента и возврата его значения
+extends mutates fun pop(self: Stack): Int {
+    require(self.length > 0, "No items in the stack to delete!");
+
+    // Обратите внимание, что мы используем оператор !!, так как точно знаем, что значение существует
+    let lastItem: Int = self.m.get(self.length - 1)!!;
+    self.m.set(self.length - 1, null); // удаление элемента
+    self.length -= 1;                  // уменьшение поля длины
+
+    return lastItem;
+}
+
+// Расширяющая функция для возврата последнего значения
+extends fun peek(self: Stack): Int {
+    require(self.length > 0, "No items in the stack!");
+
+    // Обратите внимание, что мы используем оператор !!, так как точно знаем, что значение существует
+    return self.m.get(self.length - 1)!!;
+}
+
+// Расширяющая функция для удаления всех элементов из стека
+extends mutates fun deleteAll(self: Stack) {
+    self.m = emptyMap();
+    self.length = 0;
+}
+
+// Глобальная статическая функция для создания пустого стека
+fun emptyStack(): Stack {
+    return Stack{m: emptyMap(), length: 0}; // длина по умолчанию равна 0
+}
+
+contract MapAsStack with Deployable {
+    // Постоянные переменные состояния
+    stack: Stack; // наш стек, использующий map
+
+    // Функция конструктора (инициализации) контракта
+    init() {
+        self.stack = emptyStack();
+    }
+
+    // Внутренний обработчик сообщений, отвечающий на строковое сообщение "push"
+    receive("push") {
+        // Добавление новых элементов
+        self.stack.push(42);
+    }
+
+    // Внутренний обработчик сообщений, отвечающий на строковое сообщение "pop"
+    receive("pop") {
+        // Удалите последний элемент и верните его
+        self.reply(self.stack.pop().toCoinsString().asComment());
+    }
+
+    // Внутренний обработчик сообщений, отвечающий на строковое сообщение "peek"
+    receive("peek") {
+        // Верните последний элемент карты, если он существует, или вызовите ошибку
+        self.reply(self.stack.peek().toCoinsString().asComment());
+    }
+
+    // Внутренний обработчик сообщений, отвечающий на строковое сообщение "delete_all"
+    receive("delete_all") {
+        self.stack.deleteAll();
+    }
+
+    // Геттер-функция для получения стека
+    get fun stack(): map<Int as uint16, Int> {
+        return self.stack.m;
+    }
+
+    // Геттер-функция для получения текущей длины стека
+    get fun length(): Int {
+        return self.stack.length;
+    }
+}
+```
+
+## Кольцевой буфер {#circular-buffer}
+
+[Кольцевой буфер](https://en.wikipedia.org/wiki/Circular_buffer) (круговая очередь, циклический буфер или кольцевой буфер) - это структура данных, в которой используется единый [буфер](https://en.wikipedia.org/wiki/Data_buffer) фиксированного размера, соединенный, как будто его концы замкнуты.
+
+Следующий пример эмулирует кольцевой буфер с использованием [`map<Int, V>{:tact}`][map] обернутого в [структуру (Struct)](/ru/book/structs-and-messages#structs), где `V{:tact}` может быть любым из [допустимых типов значений](/ru/book/maps#allowed-types) map:
+
+```tact
+import "@stdlib/deploy"; // для развертываемого трейта
+
+struct CircularBuffer {
+    m: map<Int as uint8, Int>; // кольцевой буфер значений Int, как карта Ints to Ints,
+                               // с сериализацией ключей в uint8 для экономии места
+    length: Int = 0;           // длина кольцевого буфера, по умолчанию равна 0
+    start: Int = 0;            // текущий индекс в кольцевом буфере, по умолчанию равен 0
+}
+
+// Верхняя граница константы времени компиляции для нашей карты, представляющей кольцевой буфер.
+const MaxCircularBufferSize: Int = 5;
+
+// Расширяющая мутационная функция для добавления новых элементов в кольцевой буфер
+extends mutates fun put(self: CircularBuffer, item: Int) {
+    if (self.length < MaxCircularBufferSize) {
+        self.m.set(self.length, item); // сохранение элемента
+        self.length += 1;              // увеличение поля длины
+    } else {
+        self.m.set(self.start, item);                          // сохранение элемента с перезаписью предыдущей записи
+        self.start = (self.start + 1) % MaxCircularBufferSize; // обновление стартовой позиции
+    }
+}
+
+// Расширяющая мутационная функция для получения элемента из кольцевого буфера
+extends mutates fun getIdx(self: CircularBuffer, idx: Int): Int {
+    require(self.length > 0, "No items in the circular buffer!");
+    require(idx >= 0, "Index of the item cannot be negative!");
+
+    if (self.length < MaxCircularBufferSize) {
+        // Обратите внимание, что мы используем оператор !!, так как точно знаем, что значение существует
+        return self.m.get(idx % self.length)!!;
+    }
+
+    // Возврат значения с учетом вращения в кольцевом буфере, также гарантированно существующего
+    return self.m.get((self.start + idx) % MaxCircularBufferSize)!!;
+}
+
+// Расширяющая функция для итерации по всем элементам кольцевого буфера и вывода их в консоль
+extends fun printAll(self: CircularBuffer) {
+    let i: Int = self.start;
+    repeat (self.length) {
+        dump(self.m.get(i)!!); //  !! указывает компилятору, что значение не может быть null
+        i = (i + 1) % MaxCircularBufferSize;
+    }
+}
+
+// Расширяющая функция для удаления всех элементов в кольцевом буфере
+extends mutates fun deleteAll(self: CircularBuffer) {
+    self.m = emptyMap();
+    self.length = 0;
+    self.start = 0;
+}
+
+// Глобальная статическая функция для создания пустого кольцевого буфера
+fun emptyCircularBuffer(): CircularBuffer {
+    return CircularBuffer{m: emptyMap(), length: 0, start: 0}; // длина и начальная позиция по умолчанию равны 0
+}
+
+// Этот контракт сохраняет последние 5 временных меток получения сообщения "timer"
+contract MapAsCircularBuffer with Deployable {
+    // Постоянные переменные состояния
+    cBuf: CircularBuffer; // наш кольцевой буфер, использующий map
+
+    // Функция конструктора (инициализации) контракта
+    init() {
+        self.cBuf = emptyCircularBuffer();
+    }
+
+    // Внутренний обработчик сообщений, отвечающий на строковое сообщение "timer"
+    // и сохраняющий временную метку при получении такого сообщения
+    receive("timer") {
+        let timestamp: Int = now();
+        self.cBuf.put(timestamp);
+    }
+
+    // Внутренний обработчик сообщений, отвечающий на строковое сообщение "get_first"
+    // и отвечающий с первым элементом кольцевого буфера
+    receive("get_first") {
+        self.reply(self.cBuf.getIdx(0).toCoinsString().asComment());
+    }
+
+    // Внутренний обработчик сообщений, отвечающий на строковое сообщение "print_all"
+    receive("print_all") {
+        self.cBuf.printAll();
+    }
+
+    // Внутренний обработчик сообщений, отвечающий на строковое сообщение "delete_all"
+    receive("delete_all") {
+        self.cBuf.deleteAll();
+    }
+}
+```
+
+:::note
+
+  Этот пример адаптирован со [страницы Arrays в Tact-By-Example](https://tact-by-example.org/04-arrays).
+
+:::
+
+:::tip[Hey [Обратите внимание!]
+
+  Не нашли подходящий пример работы со структурами данных? Есть крутые идеи реализации? [Мы будем рады вашим предложениям!](https://github.com/tact-lang/tact/issues)
+
+:::
+
+[map]: /ru/book/maps

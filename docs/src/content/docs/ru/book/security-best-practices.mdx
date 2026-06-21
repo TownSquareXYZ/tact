@@ -1,0 +1,445 @@
+---
+title: Лучшие практики безопасности
+description: Несколько антишаблонов и потенциальных векторов атак, а также лучшие практики, о которых должны знать разработчики смарт-контрактов Tact
+---
+
+[//]: # "✅❌"
+
+Существует несколько антишаблонов и потенциальных векторов атак, о которых должны знать разработчики смарт-контрактов Tact. Они могут повлиять на безопасность, эффективность и корректность контрактов. Ниже мы обсудим, что можно и чего нельзя делать, особенно при написании и поддержке безопасных смарт-контрактов Tact.
+
+Для более глубокого понимания обратитесь к следующим ресурсам:
+
+- [Руководства по смарт-контрактам в документации TON](https://docs.ton.org/v3/guidelines/smart-contracts/guidelines)
+- [Безопасное программирование смарт-контрактов в документации TON](https://docs.ton.org/v3/guidelines/smart-contracts/security/secure-programming)
+- [Лучшие практики безопасности FunC в репозитории GitHub](https://github.com/slowmist/Toncoin-Smart-Contract-Security-Best-Practices/blob/main/README.md)
+
+Кроме того, рассмотрите возможность прочтения подробной статьи CertiK, аудитора смарт-контрактов Web3: [Безопасное программирование смарт-контрактов в Tact: популярные ошибки в экосистеме TON ](https://www.certik.com/resources/blog/secure-smart-contract-programming-in-tact-popular-mistakes-in-the-ton).
+
+## Отправка конфиденциальных данных on-chain
+
+Все вычисления смарт-контракта прозрачны, и если у вас есть некоторые конфиденциальные значения во время выполнения, их можно получить с помощью простой эмуляции.
+
+##### Что делать ✅
+
+Не **отправляйте** и не храните конфиденциальные данные on-chain.
+
+##### Что не делать ❌
+
+```tact
+import "@stdlib/deploy";
+
+message Login {
+    privateKey: Int as uint256;
+    signature: Slice;
+    data: Slice;
+}
+
+contract Test with Deployable {
+    receive(msg: Login) {
+        let publicKey = getPublicKey(msg.privateKey);
+
+        require(checkDataSignature(msg.data, msg.signature, publicKey), "Invalid signature!");
+    }
+}
+```
+
+## Неправильное использование целых чисел со знаком {#misuse-of-signed-integers}
+
+Целые числа без знака безопаснее, поскольку они предотвращают большинство ошибок, в то время как целые числа со знаком могут иметь непредсказуемые последствия при неосторожном использовании. Поэтому целые числа со знаком следует использовать только в случае крайней необходимости.
+
+##### Что делать ✅
+
+Предпочитайте использовать целые числа без знака, если только они не требуются.
+
+##### Что не делать ❌
+
+Ниже приведен пример неправильного использования целого числа со знаком. В `Vote{:tact}` [Message][message] тип поля `votes` - `Int as int32{:tact}`, что является $32$-битным знаковым целым числом. Это может привести к подмене, если злоумышленник отправит отрицательное число голосов вместо положительного.
+
+```tact
+message Vote { votes: Int as int32 }
+
+contract Sample {
+    votes: Int as uint32 = 0;
+
+    receive(msg: Vote) {
+        self.votes += msg.votes;
+    }
+}
+```
+
+## Недопустимые значения выброса
+
+[Коды выхода](/ru/book/exit-codes) $0$ и $1$ указывают на нормальное выполнение фазы вычислений транзакции. Выполнение может быть неожиданно прервано путем вызова [`throw(){:tact}`](/ru/ref/core-debug#throw) или [похожих функций](/ru/ref/core-debug) напрямую с кодами выхода $0$ и $1$. Это может сильно затруднить отладку, поскольку такое прерванное выполнение будет неотличимо от нормального.
+
+##### Что делать ✅
+
+Используйте функцию [`require(){:tact}`](/ru/ref/core-debug#require) для выражения ожиданий.
+
+```tact
+require(isDataValid(msg.data), "Неверные данные!");
+```
+
+##### Что не делать ❌
+
+Не отправляйте $0$ или $1$ напрямую.
+
+```tact
+throw(0);
+throw(1);
+```
+
+## Небезопасные случайные числа
+
+Генерация действительно безопасных случайных чисел в TON — сложная задача. Функция [`random()`](/ru/ref/core-random#random) является псевдослучайной и зависит от [логического времени](https://docs.ton.org/develop/smart-contracts/guidelines/message-delivery-guarantees#what-is-a-logical-time). Хакер может предсказать случайное число путем [перебора](https://en.wikipedia.org/wiki/Brute-force_attack) логического времени в текущем блоке.
+
+##### Что делать ✅
+
+- Для критически важных приложений **не полагайтесь исключительно на решения on-chain**.
+
+- Используйте [`random(){:tact}`](/ru/ref/core-random#random) с рандомизированным логическим временем, чтобы повысить безопасность, усложнив прогнозирование для злоумышленников без доступа к узлу-валидатору. Однако обратите внимание, что это все еще ** не совсем надежно **.
+
+- Рассмотрите возможность использования **схемы фиксации и раскрытия**:
+  1. Участники генерируют случайные числа off-chain и отправляют свои хеши в контракт.
+  2. После получения всех хешей участники раскрывают свои исходные числа.
+  3. Объедините раскрытые числа (например, суммируя их), чтобы получить безопасное случайное значение.
+
+Более подробную информацию можно найти на [странице безопасной генерации случайных чисел в документации TON](https://docs.ton.org/v3/guidelines/smart-contracts/security/random-number-generation).
+
+##### Что не делать ❌
+
+Не полагайтесь на функцию [`random(){:tact}`](/ru/ref/core-random#random).
+
+```tact
+если (случайно (1, 10) == 7) {
+  ... отправка вознаграждения ...
+}
+```
+
+Не используйте рандомизацию в приемниках `external_message`, так как она остается уязвимой даже при рандомизации логического времени.
+
+## Оптимизация обработки сообщений
+
+Разбор строк из понятных человеку форматов в машиночитаемые двоичные структуры должен выполняться **вне цепочки**. Такой подход гарантирует, что в блокчейн будут отправляться только оптимизированные и компактные сообщения, что минимизирует затраты на вычисления и хранение, избегая при этом ненужных затрат на передачу данных.
+
+##### Что делать ✅
+
+Выполняйте разбор строк из понятных человеку форматов в машиночитаемые двоичные структуры **off-chain**, чтобы сохранить эффективность контракта.
+
+```tact
+message Sample {
+    parsedField: Slice;
+}
+
+contract Example {
+    receive(msg: Sample) {
+        // Обрабатывать msg.parsedField напрямую
+    }
+}
+```
+
+##### Что не делать ❌
+
+Избегайте парсинга строк из понятных человеку форматов в двоичные структуры **on-chain**, так как это увеличивает вычислительные затраты и расходы на газ.
+
+```tact
+message Sample { field: String }
+
+contract Example {
+    receive(msg: Sample) {
+        // Парсинг происходит on-chain, что неэффективно
+        let parsed = field.fromBase64();
+    }
+}
+```
+
+## Ограничение расхода газа
+
+Будьте осторожны с ошибкой `Out of gas`. Его невозможно обработать, поэтому постарайтесь заранее рассчитать потребление газа для каждого получателя [используя тесты](/ru/book/debug#tests), когда это возможно. Это поможет избежать траты лишнего газа, поскольку транзакция в любом случае завершится неудачей.
+
+##### Что делать ✅
+
+```tact
+message Vote { votes: Int as int32 }
+
+contract Example {
+    const voteGasUsage = 10000; // предварительное вычисление с помощью тестов
+
+    receive(msg: Vote) {
+        require(context().value > getComputeFee(self.voteGasUsage, false), "Недостаточно газа!");
+    }
+}
+```
+
+## Проверка подлинности
+
+Всегда проверяйте подлинность отправителя, если логика вашего контракта основана на доверенных отправителях. Это можно сделать с помощью признака [`Ownable{:tact}`](/ru/ref/stdlib-ownable) или с помощью проверки [state init](/ru/book/expressions#initof). Вы можете прочитать больше о [валидации жетонов](/ru/cookbook/jettons#accepting-jetton-transfer) и [валидации NFT](/ru/cookbook/nfts#accepting-nft-ownership-assignment).
+
+##### Что делать ✅
+
+Используйте признак [`Ownable{:tact}`](/ru/ref/stdlib-ownable).
+
+```tact
+import "@stdlib/ownable";
+
+contract Counter with Ownable {
+    owner: Address;
+    val: Int as uint32;
+
+    init() {
+        self.owner = address("OWNER_ADDRESS");
+        self.val = 0;
+    }
+
+    receive("admin-double") {
+        self.requireOwner();
+        self.val = self.val * 2;
+    }
+}
+```
+
+##### Что не делать ❌
+
+Не выполнять сообщение без проверки подлинности отправителя!
+
+```tact
+contract Example with Deployable {
+    myJettonWalletAddress: Address;
+    myJettonAmount: Int as coins = 0;
+
+    init(jettonWalletCode: Cell, jettonMasterAddress: Address) {
+        self.myJettonWalletAddress = calculateJettonWalletAddress(
+            myAddress(),
+            jettonMasterAddress,
+            jettonWalletCode,
+        );
+    }
+
+    receive(msg: JettonTransferNotification) {
+        self.myJettonAmount += msg.amount;
+    }
+}
+```
+
+## Защита от повторного воспроизведения
+
+Защита от повторного воспроизведения - это механизм безопасности, который не позволяет злоумышленнику повторно использовать предыдущее сообщение. Более подробную информацию о защите от повторного воспроизведения можно найти на [странице внешних сообщений в документации TON](https://docs.ton.org/develop/smart-contracts/guidelines/external-messages).
+
+##### Что делать ✅
+
+Чтобы различать сообщения, всегда включайте и проверяйте уникальный идентификатор, например `seqno`. Обновляйте идентификатор после успешной обработки, чтобы избежать дубликатов.
+
+В качестве альтернативы вы можете реализовать защиту от повторного воспроизведения, похожую на ту, что есть в [кошельке highload v3](https://github.com/ton-blockchain/highload-wallet-contract-v3/blob/main/contracts/highload-wallet-v3.func#L60), которая не основана на `seqno`.
+
+```tact
+message Msg {
+    newMessage: Cell;
+    signature: Slice;
+}
+
+struct DataToVerify {
+    seqno: Int as uint64;
+    message: Cell;
+}
+
+contract Sample {
+    publicKey: Int as uint256;
+    seqno: Int as uint64;
+
+    init(publicKey: Int, seqno: Int) {
+        self.publicKey = publicKey;
+        self.seqno = seqno;
+    }
+
+    external(msg: Msg) {
+        require(checkDataSignature(DataToVerify{
+            seqno: self.seqno,
+            message: msg.newMessage
+        }.toSlice(), msg.signature, self.publicKey), "Недопустимая подпись");
+        acceptMessage();
+        self.seqno += 1;
+        nativeSendMessage(msg.newMessage, 0);
+    }
+}
+```
+
+##### Что не делать ❌
+
+Не полагайтесь на проверку подписи без включения порядкового номера. Сообщения без защиты от повторного воспроизведения могут быть повторно отправлены злоумышленниками, поскольку нет ничего, что отличало бы действительное исходное сообщение от воспроизведенного.
+
+```tact
+message Msg {
+    newMessage: Cell;
+    signature: Slice;
+}
+
+contract Sample {
+    publicKey: Int as uint256;
+
+    init(publicKey: Int, seqno: Int) {
+        self.publicKey = publicKey;
+    }
+
+    external(msg: Msg) {
+        require(checkDataSignature(msg.toSlice(), msg.signature, self.publicKey), "Недопустимая подпись");
+        acceptMessage();
+        nativeSendMessage(msg.newMessage, 0);
+    }
+}
+```
+
+## Состояние гонки сообщений
+
+Каскад сообщений может обрабатываться во многих блоках. Предположим, что пока выполняется один поток сообщений, злоумышленник может инициировать второй поток сообщений параллельно. То есть, если свойство было проверено в начале, например, достаточно ли у пользователя токенов, не предполагайте, что оно все равно будет удовлетворено на третьем этапе в том же контракте.
+
+## Обработка/отправка возвращенных сообщений
+
+Отправка сообщений с флагом возвращения, установленным на `true{:tact}`, что является значением по умолчанию для функции [`send(){:tact}`](/ru/ref/core-common#send). Сообщения возвращаются, если выполнение контракта завершилось неудачей. Возможно, вы захотите справиться с этим, откатив состояние контракта, заключив код в инструкции [`try...catch{:tact}`](/ru/book/statements#try-catch) и выполнив некоторую дополнительную обработку в зависимости от вашей логики.
+
+##### Что делать ✅
+
+Обрабатывайте возвращенные сообщения с помощью [приемника возвращенных сообщений](/ru/book/bounced/#bounced-message-receiver), чтобы корректно реагировать на сообщения с ошибками.
+
+```tact
+contract JettonDefaultWallet {
+    const minTonsForStorage: Int = ton("0.01");
+    const gasConsumption: Int = ton("0.01");
+
+    balance: Int;
+    owner: Address;
+    master: Address;
+
+    init(master: Address, owner: Address) {
+        self.balance = 0;
+        self.owner = owner;
+        self.master = master;
+    }
+
+    receive(msg: TokenBurn) {
+        let ctx: Context = context();
+        require(ctx.sender == self.owner, "Invalid sender");
+
+        self.balance = self.balance - msg.amount;
+        require(self.balance >= 0, "Неверный баланс");
+
+        let fwdFee: Int = ctx.readForwardFee();
+        require(ctx.value > fwdFee + 2 * self.gasConsumption + self.minTonsForStorage, "Неверное значение - Burn");
+
+        send(SendParameters{
+            to: self.master,
+            value: 0,
+            mode: SendRemainingValue,
+            bounce: true,
+            body: TokenBurnNotification{
+                queryId: msg.queryId,
+                amount: msg.amount,
+                owner: self.owner,
+                response_destination: self.owner
+            }.toCell()
+        });
+    }
+
+    bounced(src: bounced<TokenBurnNotification>) {
+        self.balance = self.balance + src.amount;
+    }
+}
+```
+
+## Транзакция и фазы
+
+Из [страницы отправки сообщений](/ru/book/send#outbound-message-processing) в книге:
+
+> Каждая транзакция в блокчейне TON состоит из нескольких фаз. Исходящие сообщения оцениваются в фазе вычислений, но **не** отправляются в этой фазе. Вместо этого они помещаются в очередь в порядке появления на этапе действий, где выполняются все действия, перечисленные на этапе вычислений, такие как исходящие сообщения или запросы резервирования.
+
+Следовательно, если фаза вычислений завершается неудачей, [регистры](https://docs.ton.org/v3/documentation/tvm/tvm-overview#control-registers) `c4` (постоянные данные) и `c5` (действия) не будут обновлены. Однако можно вручную сохранить их состояние с помощью функции [`commit(){:tact}`](/ru/ref/core-advanced/#commit).
+
+## Аккуратно возвращайте излишки газа
+
+Если излишки газа не возвращаются отправителю, средства будут накапливаться в ваших контрактах с течением времени. В принципе, ничего страшного, просто неоптимальная практика. Вы можете добавить функцию для выгребания излишков, но популярные контракты, такие как жетоны TON, все равно возвращают отправителю [сообщение][message] с кодом операции `0xd53276db`.
+
+##### Что делать ✅
+
+Возвращайте излишки с помощью [сообщения][message] с кодом операции `0xd53276db`.
+
+```tact
+message(0xd53276db) Excesses {}
+message Vote { votes: Int as int32 }
+
+contract Sample {
+    votes: Int as uint32 = 0;
+
+    receive(msg: Vote) {
+        self.votes += msg.votes;
+
+        send(SendParameters{
+            to: sender(),
+            value: 0,
+            mode: SendRemainingValue | SendIgnoreErrors,
+            body: Excesses{}.toCell(),
+        });
+    }
+}
+```
+
+Кроме того, вы можете использовать стандартные функции [`notify(){:tact}`](/ru/ref/core-base/#self-notify) или [`forward(){:tact}`](/ru/ref/core-base/#self-forward).
+
+```tact
+message(0xd53276db) Excesses {}
+message Vote { votes: Int as int32 }
+
+contract Sample {
+    votes: Int as uint32 = 0;
+
+    receive(msg: Vote) {
+        self.votes += msg.votes;
+
+        self.notify(Excesses{}.toCell());
+    }
+}
+```
+
+## Извлечение данных из другого контракта
+
+Контракты в блокчейне могут находиться в отдельных шардах, обрабатываемых другим набором валидаторов, что означает, что один контракт не может извлекать данные из других контрактов. То есть, ни один контракт не может вызывать [функцию получения](/ru/book/functions#getter-functions)) из других контрактов.
+
+Таким образом, любая коммуникация on-chain является асинхронной и осуществляется путем отправки и получения сообщений.
+
+##### Что делать ✅
+
+Обменивайтесь сообщениями для извлечения данных из другого контракта.
+
+```tact
+message ProvideMoney {}
+message TakeMoney { money: Int as coins }
+
+contract OneContract {
+    money: Int as coins;
+
+    init(money: Int) {
+        self.money = money;
+    }
+
+    receive(msg: ProvideMoney) {
+        self.reply(TakeMoney{money: self.money}.toCell());
+    }
+}
+
+contract AnotherContract {
+    oneContractAddress: Address;
+
+    init(oneContractAddress: Address) {
+        self.oneContractAddress = oneContractAddress;
+    }
+
+    receive("get money") {
+        self.forward(self.oneContractAddress, ProvideMoney{}.toCell(), false, null);
+    }
+
+    receive(msg: TakeMoney) {
+        require(sender() == self.oneContractAddress, "Неверный поставщик денежных средств!");
+        // Обработка денежных средств
+    }
+}
+```
+
+[структурировать]: /ru/book/structs-and-messages#structs
+[сообщение]: /ru/book/structs-and-messages#messages

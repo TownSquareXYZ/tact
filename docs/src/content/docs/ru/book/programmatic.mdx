@@ -1,0 +1,48 @@
+---
+title: Программный API
+description: Способы использования компилятора Tact в качестве библиотеки Node.js и браузерных проектах
+---
+
+Вы можете вызвать компилятор Tact из своего кода в среде node и браузере.
+
+:::caution
+
+  Этот API еще не выпущен. Он будет выпущен в версии 1.0.0.
+
+:::
+
+## Запуск компилятора в браузере
+
+```ts
+import { run } from "@tact-lang/compiler";
+
+// Виртуальная файловая система
+const fs = {
+  ["main.tact"]: Buffer.from("...").toString("base64"),
+};
+
+const config = {
+  projects: [
+    {
+      name: "Sample",
+      path: "main.tact",
+      output: "./output",
+    },
+  ],
+};
+
+// Запуск компилятора
+let successful = await run({ config, fs });
+
+// Примечание: Вывод записывается в ту же объектную файловую систему.
+```
+
+## Верификация контракта
+
+Вы всегда можете проверить скомпилированный пакет с помощью функции `verify`.
+
+```ts
+import { verify } from "@tact-lang/compiler";
+const pkg: string = '...';
+const res = await verify(pkg);
+```

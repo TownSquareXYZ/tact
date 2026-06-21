@@ -1,0 +1,131 @@
+---
+title: Базовый типаж
+description: Каждый контракт и типаж в Tact неявно наследуют типаж BaseTrait
+prev:
+  link: /ru/ref/evolution/otp-006
+  label: "OTP-006: Пакет контрактов"
+---
+
+Каждый [контракт](/ru/book/contracts) и [типаж](/ru/book/types#traits) в Tact неявно [наследует](/ru/book/contracts#traits) типаж `BaseTrait{:tact}`, который содержит ряд наиболее полезных [внутренних функций](/ru/book/contracts#internal-functions) для любого типа контракта, а также константу `self.storageReserve{:tact}`, предназначенную для продвинутых пользователей Tact.
+
+## Константы
+
+### self.storageReserve {#self-storagereserve}
+
+```tact
+virtual const storageReserve: Int = 0;
+```
+
+Пример использования:
+
+```tact
+contract AllYourStorageBelongsToUs {
+    // Это изменит поведение функции self.forward(), заставляя 
+    // ее зарезервировать эту сумму nanoToncoin перед
+    // пересылкой сообщения с режимом SendRemainingBalance
+    override const storageReserve: Int = ton("0.1");
+}
+```
+
+## Функции
+
+### self.reply {#self-reply}
+
+```tact
+virtual fun reply(body: Cell?);
+```
+
+Псевдоним для вызова функции [`self.forward(){:tact}`](#self-forward) со следующими аргументами:
+
+```tact
+self.forward(sender(), body, true, null);
+//           ↑         ↑     ↑     ↑
+//           |         |     |     init: StateInit?
+//           |         |     bounce: Bool
+//           |         body: Cell?
+//           to: Address
+```
+
+Пример использования:
+
+```tact
+// то сообщение может вернуться к нам!
+self.reply("Beware, this is my reply to you!".asComment());
+```
+
+### self.notify {#self-notify}
+
+```tact
+virtual fun notify(body: Cell?);
+```
+
+Псевдоним для вызова функции [`self.forward(){:tact}`](#self-forward) со следующими аргументами:
+
+```tact
+self.forward(sender(), body, false, null);
+//           ↑         ↑     ↑      ↑
+//           |         |     |      init: StateInit?
+//           |         |     bounce: Bool
+//           |         body: Cell?
+//           to: Address
+```
+
+Пример использования:
+
+```tact
+// Это сообщение не будет возвращено!
+self.notify("Beware, this is my reply to you!".asComment());
+```
+
+### self.forward {#self-forward}
+
+```tact
+virtual fun forward(to: Address, body: Cell?, bounce: Bool, init: StateInit?);
+```
+
+[Помещает сообщение](/ru/book/send#outbound-message-processing) (с возможностью возврата или без возможности возврата) в очередь на отправку по указанному адресу `to`. При желании вы можете указать `тело` сообщения и пакет [`init`](/ru/book/expressions#initof).
+
+Когда константа [`self.storageReserve{:tact}`](#self-storagereserve) перезаписывается на $> 0$, перед отправкой сообщения она также пытается зарезервировать сумму `self.storageReserve{:tact}` в [nanoToncoin][nano] из оставшегося баланса перед отправкой в ​​режиме [`SendRemainingBalance{:tact}`](https://docs.tact-lang.org/book/message-mode#base-modes) ($128$).
+
+В случае неудачной попытки резервирования и в случае, когда по умолчанию попытка не выполняется, сообщение отправляется в режиме [`SendRemainingValue{:tact}`](https://docs.tact-lang.org/book/message-mode#base-modes) ($64$).
+
+:::note
+
+  Обратите внимание, что `self.forward(){:tact}` никогда не отправляет дополнительные [nanoToncoin][nano] сверх того, что доступно на балансе.\
+Чтобы иметь возможность отправить больше [nanoToncoin][nano] одним сообщением, используйте функцию [`send(){:tact}`](/ru/ref/core-common#send).
+
+:::
+
+Пример использования:
+
+```tact
+import "@stdlib/ownable";
+
+message PayoutOk {
+    address: Address;
+    value: Int as coins;
+}
+
+contract Payout with Ownable {
+    completed: Bool;
+    owner: Address;
+
+    init(owner: Address) {
+        self.owner = owner;
+        self.completed = false;
+    }
+
+    // ... некоторые действия здесь ...
+
+    // Функция возврата получателя, которая вызывается, когда указанное исходящее сообщение возвращается
+    bounced(msg: bounced<PayoutOk>) {
+        // Сбрасываем флаг завершения, если наше сообщение было возвращено
+        self.completed = false;
+
+        // Отправляем уведомление о том, что выплата не удалась, используя оставшиеся средства для обработки этой отправки
+        self.forward(self.owner, "Payout failed".asComment(), false, null);
+    }
+}
+```
+
+[nano]: /ru/book/integers#nanotoncoin

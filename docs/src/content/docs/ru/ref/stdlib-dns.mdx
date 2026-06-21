@@ -1,0 +1,195 @@
+---
+title: "@stdlib/dns"
+description: Предоставляет средства для разрешения DNS-имен на TON
+---
+
+Предоставляет средства для разрешения [DNS](https://docs.ton.org/participate/web3/dns) имен.
+
+Чтобы использовать эту библиотеку, импортируйте `@stdlib/dns`:
+
+```tact
+import "@stdlib/dns";
+```
+
+## Структуры
+
+### DNSResolveResult
+
+```tact
+struct DNSResolveResult {
+    prefix: Int;
+    record: Cell?;
+}
+```
+
+## Функции
+
+### dnsStringToInternal
+
+```tact
+@name(dns_string_to_internal)
+native dnsStringToInternal(str: String): Slice?;
+```
+
+Преобразует строку DNS в [`Slice{:tact}`][slice] или [`null{:tact}`](/ru/book/optionals), если это невозможно.
+
+Исходный код (FunC): [dns.fc#L1](https://github.com/tact-lang/tact/blob/e69c7fc99dc9be3fa5ff984456c03ffe8fed3677/stdlib/libs/dns.fc#L1)
+
+### dnsInternalNormalize
+
+```tact
+@name(dns_internal_normalize)
+native dnsInternalNormalize(src: Slice): Slice;
+```
+
+Нормализует внутреннее представление DNS [`Slice{:tact}`][slice]. Переданный [`Slice{:tact}`][slice] не должен иметь никаких ссылок, в противном случае будет выдано исключение с [кодом выхода 134](/ru/book/exit-codes#134): `Недопустимый аргумент`.
+
+Исходный код (FunC): [dns.fc#L125](https://github.com/tact-lang/tact/blob/e69c7fc99dc9be3fa5ff984456c03ffe8fed3677/stdlib/libs/dns.fc#L125)
+
+### dnsInternalVerify
+
+```tact
+@name(dns_internal_verify)
+native dnsInternalVerify(subdomain: Slice): Bool;
+```
+
+Проверяет внутреннее DNS-представление поддомена [`Slice{:tact}`][slice].
+
+Исходный код (FunC): [dns.fc#L81](https://github.com/tact-lang/tact/blob/e69c7fc99dc9be3fa5ff984456c03ffe8fed3677/stdlib/libs/dns.fc#L81)
+
+### dnsExtractTopDomainLength
+
+```tact
+fun dnsExtractTopDomainLength(subdomain: Slice): Int;
+```
+
+Вычисляет длину домена верхнего уровня в `subdomain` [`Slice{:tact}`][slice].
+
+Исходный код:
+
+```tact
+fun dnsExtractTopDomainLength(subdomain: Slice): Int {
+    let i: Int = 0;
+    let needBreak: Bool = false;
+    do {
+        let char: Int = subdomain.loadUint(8); // мы не проверяем domain.length, потому что он ДОЛЖЕН содержать символ \0
+        needBreak = char == 0;
+        if (!needBreak) {
+            i += 8;
+        }
+    } until (needBreak);
+    require(i != 0, "Недопустимое DNS-имя");
+    return i;
+}
+```
+
+### dnsExtractTopDomain
+
+```tact
+fun dnsExtractTopDomain(subdomain: Slice): Slice;
+```
+
+Извлекает домен верхнего уровня из `subdomain` [`Slice{:tact}`][slice].
+
+Исходный код:
+
+```tact
+fun dnsExtractTopDomain(subdomain: Slice): Slice {
+    let len: Int = dnsExtractTopDomainLength(subdomain);
+    return subdomain.loadBits(len);
+}
+```
+
+### dnsResolveNext
+
+```tact
+fun dnsResolveNext(address: Address): Cell;
+```
+
+Преобразует `address` [`Address{:tact}`][p] в [`Cell{:tact}`][cell].
+
+Исходный код:
+
+```tact
+fun dnsResolveNext(address: Address): Cell {
+    return beginCell()
+        .storeUint(0xba93, 16)
+        .storeAddress(address)
+        .endCell();
+}
+```
+
+### dnsResolveWallet
+
+```tact
+fun dnsResolveWallet(address: Address): Cell;
+```
+
+Преобразует `address` кошелька [`Address{:tact}`][p] в [`Cell{:tact}`][cell].
+
+Исходный код:
+
+```tact
+fun dnsResolveWallet(address: Address): Cell {
+    return beginCell()
+        .storeUint(0x9fd3, 16)
+        .storeAddress(address)
+        .storeUint(0, 8)
+        .endCell();
+}
+```
+
+## Типажи
+
+### DNSResolver
+
+Типаж `DNSResolver` предоставляет две вспомогательные функции для разрешения DNS:
+
+1. [функция получатель](/ru/book/functions#getter-functions) `dnsresolve(){:tact}`, которая соответствует его [варианту FunC](https://docs.ton.org/develop/howto/subresolvers#dnsresolve-code).
+2. виртуальная функция `doResolveDNS(){:tact}`, которая создает структуру [DNSResolveResult](#dnsresolveresult) из битов поддомена [`Slice{:tact}`][slice].
+
+Исходный код:
+
+```tact
+trait DNSResolver {
+    get fun dnsresolve(subdomain: Slice, category: Int): DNSResolveResult {
+        // Нормализация
+        let delta: Int = 0;
+        if (subdomain.preloadUint(8) == 0) {
+            subdomain.loadUint(8); // Пропустить первый байт
+            delta += 8;
+        }
+
+        // Проверяет правильность
+        require(dnsInternalVerify(subdomain), "Недопустимое имя DNS");
+
+        // Разрешить
+        let res: DNSResolveResult = self.doResolveDNS(subdomain, category);
+        return DNSResolveResult{prefix: res.prefix + delta, record: res.record};
+    }
+    virtual fun doResolveDNS(subdomain: Slice, category: Int): DNSResolveResult {
+        return DNSResolveResult{prefix: subdomain.bits(), record: null};
+    }
+}
+```
+
+Пример использования:
+
+```tact
+import "@stdlib/dns";
+
+contract ExampleContract with DNSResolver {
+    // Теперь этот контракт имеет:
+    // 1. функция получения dnsresolve
+    // 2. виртуальную функцию doResolveDNS
+}
+```
+
+## Исходный код
+
+- [dns.tact](https://github.com/tact-lang/tact/blob/61541b7783098e1af669faccd7d2334c10981c72/stdlib/libs/dns.tact)
+- [dns.fc](https://github.com/tact-lang/tact/blob/e69c7fc99dc9be3fa5ff984456c03ffe8fed3677/stdlib/libs/dns.fc)
+
+[p]: /ru/book/types#primitive-types
+[клетка]: /ru/book/cells#cells
+[нарезать]: /ru/book/cells#slices

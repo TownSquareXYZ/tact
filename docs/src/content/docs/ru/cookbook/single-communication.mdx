@@ -1,0 +1,127 @@
+---
+title: Связь с одним контрактом
+description: Общие примеры связи одного развернутого контракта с другими контрактами на блокчейне
+prev:
+  link: /ru/cookbook
+  label: Обзор подготовительной книги
+---
+
+На этой странице перечислены примеры коммуникации одного развернутого контракта с другими контрактами на блокчейне.
+
+Примеры взаимодействия между несколькими развернутыми контрактами см. в разделе [взаимодействие с несколькими контрактами](/ru/cookbook/multi-communication).
+
+## Как отправить простой ответ {#how-to-make-a-basic-reply}
+
+```tact
+contract Example {
+    receive() {
+        self.reply("Hello, World!".asComment()); // asComment преобразует строку в ячейку с комментарием
+    }
+}
+```
+
+## Как отправить простое сообщение
+
+```tact
+contract Example {
+    receive() {
+        send(SendParameters{
+            bounce: true, // по умолчанию
+            to: sender(), // или другой адрес назначения
+            value: ton("0.01"), // прикрепленное количество Ton для отправки
+            body: "Hello from Tact!".asComment(), // комментарий (необязательно)
+        });
+    }
+}
+```
+
+## Как отправить сообщение с полным балансом
+
+Если нам нужно отправить весь баланс смарт-контракта, то мы должны использовать режим отправки `SendRemainingBalance{:tact}`. В качестве альтернативы мы можем использовать `mode: 128{:tact}`, который имеет то же значение.
+
+```tact
+contract Example {
+    receive() {
+        send(SendParameters{
+            // bounce = true по умолчанию
+            to: sender(), // отправить сообщение обратно отправителю
+            value: 0,
+            mode: SendRemainingBalance, // или режим 128
+            body: "Hello from Tact!".asComment(), // комментарий (необязательный)
+        });
+    }
+}
+```
+
+## Как отправить сообщение с оставшимся значением
+
+Если мы хотим ответить тому же отправителю, мы можем использовать режим `SendRemainingValue{:tact}` (т. е. `mode: 64{:tact}`), который переносит все оставшееся значение входящего сообщения в дополнение к значению, изначально указанному в новом сообщении.
+
+```tact
+contract Example {
+    receive() {
+        send(SendParameters{
+            // bounce = true по умолчанию
+            to: sender(), // отправить сообщение обратно первоначальному отправителю
+            value: 0,
+            mode: SendRemainingValue,
+            body: "Hello from Tact!".asComment(), // комментарий (необязательно)
+        });
+    }
+}
+```
+
+Часто бывает полезно добавить также флаг `SendIgnoreErrors{:tact}`, чтобы игнорировать любые ошибки, возникающие при обработке этого сообщения на этапе выполнения действия
+
+```tact
+contract Example {
+    receive() {
+        send(SendParameters{
+            // bounce = true по умолчанию
+            to: sender(), // отправить сообщение обратно отправителю
+            value: 0,
+            mode: SendRemainingValue | SendIgnoreErrors, // предпочтительнее использовать | вместо + для режима
+            body: "Hello from Tact!".asComment(), // комментарий (необязательно)
+        });
+    }
+}
+```
+
+Последний пример идентичен использованию функции [`.reply(){:tact}`](#how-to-make-a-basic-reply).
+
+## Как отправить сообщение с длинным текстовым комментарием
+
+Если нам нужно отправить сообщение с длинным текстовым комментарием, мы должны создать [`String{:tact}`](/ru/book/types#primitive-types), который состоит из более чем $127$ символов. Для этого мы можем использовать тип примитива [`StringBuilder{:tact}`](/ru/book/types#primitive-types) и его методы `beginComment(){:tact}` и `append(){:tact}`. Перед отправкой мы должны преобразовать эту строку в ячейку с помощью метода `toCell(){:tact}`.
+
+```tact
+contract Example {
+    receive() {
+        let comment: StringBuilder = beginComment();
+        let longString = "..."; // Некоторая строка с более чем 127 символами.
+        comment.append(longString);
+
+        send(SendParameters{
+            // bounce = true по умолчанию
+            to: sender(),
+            value: 0,
+            mode: SendIgnoreErrors,
+            body: comment.toCell(),
+        });
+    }
+}
+```
+
+:::note[Useful ссылки:]
+
+  ["Отправка сообщений" в Книге](/ru/book/send#send-message)\
+  ["Cообщения `mode`" в Книге](/ru/book/message-mode)\
+  [`StringBuilder{:tact}` в Книге](/ru/book/types#primitive-types)\
+  [`Cell{:tact}`  в базовой библиотеке](/ru/ref/core-cells)
+
+:::
+
+:::tip[Hey там!]
+
+  Не нашли свой любимый пример взаимодействия с одним контрактом? Есть интересные варианты реализации? [Приветствуется вклад!](https://github.com/tact-lang/tact/issues)
+
+:::
